@@ -5,20 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ProtocolApp Pro - Ultimate Mobile</title>
     
-    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#09090b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ProtocolApp">
     
-    <!-- FontAwesome & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -90,8 +87,8 @@
         .input-group { display: flex; flex-direction: column; }
         .input-group label { font-weight: 600; font-size: 0.8em; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
         .input-group label i { font-size: 1.1em; color: var(--text-muted); opacity: 0.8; width: 14px; text-align: center; }
-        .input-group input, .input-group textarea { background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); padding: 12px 14px; outline: none; font-family: inherit; font-size: 16px; transition: var(--transition); }
-        .input-group input:focus, .input-group textarea:focus { border-color: var(--accent-red); }
+        .input-group input, .input-group textarea, .input-group select { background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); padding: 12px 14px; outline: none; font-family: inherit; font-size: 16px; transition: var(--transition); }
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color: var(--accent-red); }
         .input-group textarea { resize: vertical; min-height: 80px; }
 
         /* Fotodokumentation */
@@ -176,7 +173,6 @@
 <body>
 
     <div class="app-container">
-        <!-- Top Bar: Datum und Projekt-Nr -->
         <div class="top-header-bar">
             <div class="header-date">
                 Datum: <span id="currentDate">Lade...</span>
@@ -192,7 +188,6 @@
                 <label for="projektName"><i class="fas fa-folder-open"></i></label>
                 <input type="text" id="projektName" placeholder="Projektname / Bauvorhaben..." oninput="saveData()">
             </div>
-            <!-- Download Button -->
             <button class="action-btn" id="pdf-btn" title="PDF Erstellen" onclick="exportToPDF()">
                 <i class="fas fa-file-pdf" style="color: var(--accent-red);"></i>
             </button>
@@ -262,7 +257,6 @@
         <button class="reset-app-btn" onclick="resetApp()"><i class="fas fa-trash-alt"></i> Alle Daten zurücksetzen</button>
     </div>
 
-    <!-- MODAL POP-UP -->
     <div class="modal-overlay" id="areaModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -270,7 +264,6 @@
                 <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- Angepasste Bezeichnungen -->
             <div class="input-group">
                 <label><i class="fas fa-tag"></i> Bereich</label>
                 <input type="text" id="modalAreaName" oninput="updateCurrentAreaName(this.value)">
@@ -369,11 +362,20 @@
                     document.getElementById('o-telefon').value = data.oTelefon || '';
                     document.getElementById('o-email').value = data.oEmail || '';
                     
-                    // Cleanup old features property just in case
-                    buildingAreas = (data.buildingAreas || []).map(area => {
-                        delete area.features;
-                        return area;
+                    buildingAreas = data.buildingAreas || [];
+                    
+                    // Abwärtskompatibilität für neue Foto-Struktur (String zu Objekt mit Note)
+                    buildingAreas.forEach(area => {
+                        if (area.photos) {
+                            area.photos = area.photos.map(p => {
+                                if (typeof p === 'string') {
+                                    return { data: p, note: "" };
+                                }
+                                return p;
+                            });
+                        }
                     });
+
                     renderAreas();
                 } catch(e) { console.error("Could not load data", e); }
             }
@@ -504,7 +506,7 @@
                         const img = new Image();
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
-                            const MAX_SIZE = 800;
+                            const MAX_SIZE = 800; // Schutz vor Abstürzen durch große Bilder
                             let width = img.width;
                             let height = img.height;
 
@@ -683,7 +685,7 @@
             });
         }
 
-        // --- KOMPLETT NEUER PDF EXPORT (COMPACT TECH STYLE) ---
+        // --- KOMPLETT NEUER PDF EXPORT (Kompakt & Stabil) ---
         function exportToPDF() {
             const pdfBtn = document.getElementById('pdf-btn');
             const originalIconHTML = pdfBtn.innerHTML;
@@ -708,90 +710,87 @@
             const oTelefon = document.getElementById('o-telefon').value.trim() || '—';
             const oEmail = document.getElementById('o-email').value.trim() || '—';
 
+            // Aus dem DOM getrennt erstellen, um Render-Fehler zu vermeiden
             const printElement = document.createElement('div');
-            printElement.style.padding = '30px 40px';
+            printElement.style.padding = '0';
             printElement.style.fontFamily = "'Arial', 'Helvetica', sans-serif";
             printElement.style.color = '#1e293b';
             printElement.style.backgroundColor = '#ffffff';
 
             let htmlStructure = `
-                <!-- Clean Dark Header -->
-                <div style="background-color: #0f172a; color: #ffffff; padding: 25px 30px; border-radius: 8px; margin-bottom: 25px;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div style="flex-grow: 1;">
-                            <h1 style="margin: 0 0 5px 0; font-size: 24px; font-weight: 800; text-transform: uppercase;">${projektName}</h1>
-                            <div style="font-size: 12px; color: #94a3b8;">Projekt-Nr: <strong style="color: #ffffff;">${projektNummer}</strong></div>
+                <div style="background-color: #0f172a; color: #ffffff; padding: 25px 30px; margin-bottom: 25px;">
+                    <h1 style="margin: 0 0 8px 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">${projektName}</h1>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 13px; color: #94a3b8;">
+                        <div>
+                            Projekt-Nr: <strong style="color: #ffffff;">${projektNummer}</strong>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-weight: 700; color: #e11d48; text-transform: uppercase; margin-bottom: 4px; font-size: 12px;">Protokoll</div>
-                            <div style="font-size: 12px; color: #94a3b8;">Datum: <strong style="color: #ffffff;">${datum}</strong></div>
+                            <div style="font-weight: 700; color: #e11d48; text-transform: uppercase; margin-bottom: 4px; font-size: 13px;">Erfassungsprotokoll</div>
+                            Datum: <strong style="color: #ffffff;">${datum}</strong>
                         </div>
                     </div>
                 </div>
 
-                <!-- Stammdaten Compact Grid -->
-                <table style="width: 100%; margin-bottom: 30px; border-collapse: collapse;">
-                    <tr>
-                        <!-- Kunde -->
-                        <td style="width: 50%; vertical-align: top; padding-right: 15px;">
-                            <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; height: 100%;">
-                                <div style="font-size: 11px; font-weight: 700; color: #e11d48; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px;">Kundendaten</div>
-                                <table style="width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.6;">
-                                    <tr><td style="width: 60px; color: #64748b; font-weight: 600;">Firma:</td><td style="font-weight: 700; color: #0f172a;">${kFirma}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Adresse:</td><td style="color: #334155;">${kStrasse}<br>${kStadt}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600;">Kontakt:</td><td style="color: #334155;">${kKontakt}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600;">Telefon:</td><td style="color: #334155;">${kTelefon}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600;">E-Mail:</td><td style="color: #334155;">${kEmail}</td></tr>
-                                </table>
-                            </div>
-                        </td>
-                        <!-- Objekt -->
-                        <td style="width: 50%; vertical-align: top; padding-left: 15px;">
-                            <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; height: 100%;">
-                                <div style="font-size: 11px; font-weight: 700; color: #0ea5e9; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px;">Objektdaten</div>
-                                <table style="width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.6;">
-                                    <tr><td style="width: 60px; color: #64748b; font-weight: 600;">Objekt:</td><td style="font-weight: 700; color: #0f172a;">${oFirma}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Adresse:</td><td style="color: #334155;">${oStrasse}<br>${oStadt}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600;">Kontakt:</td><td style="color: #334155;">${oKontakt}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600;">Telefon:</td><td style="color: #334155;">${oTelefon}</td></tr>
-                                    <tr><td style="color: #64748b; font-weight: 600;">E-Mail:</td><td style="color: #334155;">${oEmail}</td></tr>
-                                </table>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+                <div style="padding: 0 30px;">
+                    <table style="width: 100%; margin-bottom: 30px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%; vertical-align: top; padding-right: 15px;">
+                                <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; background: #f8fafc;">
+                                    <div style="font-size: 11px; font-weight: 800; color: #e11d48; text-transform: uppercase; margin-bottom: 8px;">Kundendaten</div>
+                                    <table style="width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.5;">
+                                        <tr><td style="width: 60px; color: #64748b; font-weight: 600;">Firma:</td><td style="font-weight: 700; color: #0f172a;">${kFirma}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Adresse:</td><td style="color: #334155;">${kStrasse}, ${kStadt}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Kontakt:</td><td style="color: #334155;">${kKontakt}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Telefon:</td><td style="color: #334155;">${kTelefon}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">E-Mail:</td><td style="color: #334155;">${kEmail}</td></tr>
+                                    </table>
+                                </div>
+                            </td>
+                            <td style="width: 50%; vertical-align: top; padding-left: 15px;">
+                                <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; background: #f8fafc;">
+                                    <div style="font-size: 11px; font-weight: 800; color: #0ea5e9; text-transform: uppercase; margin-bottom: 8px;">Objektdaten</div>
+                                    <table style="width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.5;">
+                                        <tr><td style="width: 60px; color: #64748b; font-weight: 600;">Objekt:</td><td style="font-weight: 700; color: #0f172a;">${oFirma}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Adresse:</td><td style="color: #334155;">${oStrasse}, ${oStadt}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Kontakt:</td><td style="color: #334155;">${oKontakt}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Telefon:</td><td style="color: #334155;">${oTelefon}</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">E-Mail:</td><td style="color: #334155;">${oEmail}</td></tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
             `;
 
             let pdfObjectsCount = 0; let pdfKWCount = 0; let pdfWWCount = 0;
 
             if (buildingAreas.length === 0) {
-                htmlStructure += `<div style="padding: 20px; background: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; font-size: 12px; text-align: center;">Es wurden keine Gebäudebereiche erfasst.</div>`;
+                htmlStructure += `<div style="padding: 20px; background: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; font-size: 12px; text-align: center;">Es wurden keine Gebäudebereiche erfasst.</div></div>`;
             } else {
                 buildingAreas.forEach(area => {
                     pdfObjectsCount += area.items.length;
 
-                    // Bereich Wrapper
+                    // Bereich Wrapper (Vermeidet unschöne Seitenumbrüche mitten im Bereich)
                     htmlStructure += `
                         <div style="margin-bottom: 25px; page-break-inside: avoid; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;">
                             
-                            <!-- Area Header Clean -->
-                            <div style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; padding: 10px 15px; display: flex; align-items: center;">
+                            <div style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; padding: 8px 12px; display: flex; align-items: center;">
                                 <div style="width: 4px; height: 16px; background-color: #e11d48; margin-right: 8px; border-radius: 2px;"></div>
                                 <h2 style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase;">${area.name}</h2>
                             </div>
                             
-                            <div style="padding: 15px;">
+                            <div style="padding: 12px;">
                     `;
                     
                     if (area.items.length === 0) {
                         htmlStructure += `<div style="font-size: 11px; color: #94a3b8; font-style: italic;">Keine Entnahmestellen dokumentiert.</div>`;
                     } else {
                         htmlStructure += `
-                            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px;">
                                 <thead>
                                     <tr style="color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
-                                        <th style="padding: 6px 8px; text-align: left; width: 60%;">Entnahmestelle</th>
-                                        <th style="padding: 6px 8px; text-align: right; width: 40%;">Anschluss</th>
+                                        <th style="padding: 4px 6px; text-align: left; width: 60%;">Entnahmestelle</th>
+                                        <th style="padding: 4px 6px; text-align: right; width: 40%;">Anschluss</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -821,9 +820,9 @@
                             }
 
                             htmlStructure += `
-                                <tr style="background-color: ${rowBg}; border-bottom: 1px solid #f1f5f9;">
-                                    <td style="padding: 6px 8px; font-weight: 600; color: #1e293b;">${item.name}${detailInfo}</td>
-                                    <td style="padding: 6px 8px; text-align: right;">${waterBadgesHTML}</td>
+                                <tr style="background-color: ${rowBg};">
+                                    <td style="padding: 6px; font-weight: 600; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${item.name}${detailInfo}</td>
+                                    <td style="padding: 6px; text-align: right; border-bottom: 1px solid #e2e8f0;">${waterBadgesHTML}</td>
                                 </tr>
                             `;
                         });
@@ -833,54 +832,57 @@
                     // Bemerkungen
                     if (area.notes && area.notes.trim() !== '') {
                         htmlStructure += `
-                            <div style="margin-bottom: 15px; padding: 8px 12px; background-color: #f8fafc; border-left: 3px solid #64748b; font-size: 11px; color: #334155; border-radius: 4px;">
+                            <div style="margin-bottom: 12px; padding: 8px; background-color: #f8fafc; border-left: 3px solid #64748b; font-size: 11px; color: #334155;">
                                 <strong style="color: #0f172a; text-transform: uppercase;">Bemerkungen:</strong><br>
                                 <div style="margin-top: 2px; line-height: 1.4;">${area.notes.replace(/\n/g, '<br>')}</div>
                             </div>
                         `;
                     }
 
-                    // Fotodokumentation
+                    // Fotodokumentation mit Text
                     if (area.photos && area.photos.length > 0) {
                         htmlStructure += `
-                            <div style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                            <div style="margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
                                 <div style="font-size: 10px; color: #0f172a; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Fotodokumentation (${area.photos.length})</div>
                                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                         `;
                         area.photos.forEach(photo => {
-                            let noteHtml = photo.note ? `<div style="font-size: 9px; color: #64748b; margin-top: 4px; text-align: center; width: 140px; word-wrap: break-word;">${photo.note}</div>` : '';
+                            let noteHtml = photo.note ? `<div style="font-size: 9px; color: #475569; margin-top: 4px; text-align: center; width: 140px; word-wrap: break-word;">${photo.note}</div>` : '';
                             htmlStructure += `
-                                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 8px;">
-                                    <img src="${photo.data}" style="width: 140px; height: 140px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">
+                                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 5px;">
+                                    <img src="${photo.data}" style="width: 140px; height: 140px; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 4px;">
                                     ${noteHtml}
                                 </div>
                             `;
                         });
                         htmlStructure += `</div></div>`;
                     }
-                    htmlStructure += `</div></div>`; // End Area Content + Wrapper
+                    htmlStructure += `</div></div>`; // End Area Wrapper
                 });
+                
+                // Ende des Padding-Containers
+                htmlStructure += `</div>`;
             }
 
-            // Gesamtübersicht als kompakter Daten-Banner am Ende
+            // Gesamtübersicht als Daten-Banner am Ende
             htmlStructure += `
-                <div style="margin-top: 30px; page-break-inside: avoid;">
-                    <div style="background-color: #0f172a; border-radius: 8px; padding: 15px; color: #ffffff;">
-                        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; color: #94a3b8;">Zusammenfassung</div>
+                <div style="margin-top: 30px; padding: 0 30px; page-break-inside: avoid;">
+                    <div style="background-color: #f8fafc; border: 2px solid #0f172a; padding: 15px;">
+                        <div style="font-size: 13px; font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 12px;">Zusammenfassende Übersicht</div>
                         
-                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                             <tr>
-                                <td style="width: 33.33%; text-align: center; border-right: 1px solid #334155;">
-                                    <div style="color: #94a3b8; font-weight: 600; font-size: 10px; text-transform: uppercase;">Objekte</div>
-                                    <div style="font-weight: 800; font-size: 20px; margin-top: 4px;">${pdfObjectsCount}</div>
+                                <td style="width: 33.33%; text-align: center; border-right: 1px solid #cbd5e1;">
+                                    <div style="color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 10px;">Entnahmestellen</div>
+                                    <div style="color: #0f172a; font-weight: 800; font-size: 20px; margin-top: 3px;">${pdfObjectsCount}</div>
                                 </td>
-                                <td style="width: 33.33%; text-align: center; border-right: 1px solid #334155;">
-                                    <div style="color: #38bdf8; font-weight: 600; font-size: 10px; text-transform: uppercase;">Kaltwasser (KW)</div>
-                                    <div style="color: #bae6fd; font-weight: 800; font-size: 20px; margin-top: 4px;">${pdfKWCount}x</div>
+                                <td style="width: 33.33%; text-align: center; border-right: 1px solid #cbd5e1;">
+                                    <div style="color: #0284c7; font-weight: 600; text-transform: uppercase; font-size: 10px;">Kaltwasser (KW)</div>
+                                    <div style="color: #0369a1; font-weight: 800; font-size: 20px; margin-top: 3px;">${pdfKWCount}x</div>
                                 </td>
                                 <td style="width: 33.33%; text-align: center;">
-                                    <div style="color: #fb923c; font-weight: 600; font-size: 10px; text-transform: uppercase;">Warmwasser (WW)</div>
-                                    <div style="color: #fed7aa; font-weight: 800; font-size: 20px; margin-top: 4px;">${pdfWWCount}x</div>
+                                    <div style="color: #ea580c; font-weight: 600; text-transform: uppercase; font-size: 10px;">Warmwasser (WW)</div>
+                                    <div style="color: #c2410c; font-weight: 800; font-size: 20px; margin-top: 3px;">${pdfWWCount}x</div>
                                 </td>
                             </tr>
                         </table>
@@ -888,19 +890,30 @@
                 </div>
             `;
 
-            printElement.innerHTML = htmlStructure;
+            // Element zum rendern unsichtbar in den Body hängen (Verhindert Endlos-Laden bei Bildern!)
+            printElement.style.position = 'absolute';
+            printElement.style.left = '-9999px';
+            printElement.style.top = '0';
+            document.body.appendChild(printElement);
 
             const opt = {
-                margin:       [10, 15, 10, 15], 
+                margin:       [0, 0, 10, 0], // Top, Left, Bottom, Right
                 filename:     `${projektNummer}_${projektName.replace(/[^a-zA-Z0-9]/g, '_') || 'Export'}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
+                image:        { type: 'jpeg', quality: 0.95 },
                 html2canvas:  { scale: 2, useCORS: true, logging: false },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
             html2pdf().set(opt).from(printElement).save().then(() => {
+                document.body.removeChild(printElement);
                 pdfBtn.innerHTML = originalIconHTML;
                 pdfBtn.style.pointerEvents = 'auto';
+            }).catch(err => {
+                console.error("PDF Error: ", err);
+                document.body.removeChild(printElement);
+                pdfBtn.innerHTML = originalIconHTML;
+                pdfBtn.style.pointerEvents = 'auto';
+                alert("Fehler beim Erstellen der PDF. Möglicherweise ist das Bildmaterial zu groß.");
             });
         }
 
