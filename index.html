@@ -5,17 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ProtocolApp Pro - Ultimate Mobile</title>
     
+    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#09090b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ProtocolApp">
     
+    <!-- FontAwesome & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -50,148 +53,166 @@
 
         .app-container { width: 100%; max-width: 600px; margin: 0 auto; }
 
-        .header-date { text-align: center; color: var(--text-muted); font-size: 0.9em; margin-bottom: 25px; font-weight: 500; }
-        .header-date span { color: var(--text-main); font-weight: 600; margin-left: 6px; background: var(--bg-card); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
+        /* Top Bar */
+        .top-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 10px; }
+        
+        .header-date { color: var(--text-muted); font-size: 0.9em; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .header-date span { color: var(--text-main); font-weight: 600; background: var(--bg-card); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
+
+        .header-project-nr { display: flex; align-items: center; gap: 8px; background: var(--bg-card); padding: 5px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); flex-grow: 1; justify-content: flex-end; }
+        .header-project-nr label { font-size: 0.75em; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .header-project-nr input { background: transparent; border: none; color: var(--text-main); font-weight: 700; font-size: 0.95em; outline: none; width: 100px; text-align: right; font-family: inherit; }
+        .header-project-nr input::placeholder { color: #52525b; font-weight: 500; }
 
         .project-section { display: flex; gap: 10px; margin-bottom: 30px; }
         .project-input-group { flex-grow: 1; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 12px 15px; display: flex; align-items: center; }
         .project-input-group:focus-within { border-color: var(--accent-red); background-color: #1f1f22; }
+        .project-input-group label { font-size: 1em; font-weight: 600; margin-right: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
         .project-input-group input { flex-grow: 1; background: transparent; border: none; color: var(--text-main); font-size: 16px; font-family: inherit; font-weight: 600; outline: none; width: 100%; }
 
-        .action-btn { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; color: var(--text-main); font-size: 1.25em; cursor: pointer; flex-shrink: 0; }
+        .action-btn { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; color: var(--text-main); font-size: 1.25em; cursor: pointer; flex-shrink: 0; transition: var(--transition); }
         .action-btn:active { transform: scale(0.92); background-color: var(--bg-input); }
 
         .divider { display: flex; align-items: center; color: var(--text-muted); margin: 30px 0 15px 0; font-weight: 700; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; }
         .divider::after { content: ''; flex: 1; margin-left: 15px; border-bottom: 1px solid var(--border-color); }
 
+        /* Akkordeons */
         .accordion { margin-bottom: 12px; border-radius: var(--radius-lg); background-color: var(--bg-card); border: 1px solid var(--border-color); overflow: hidden; }
         .accordion-header { padding: 16px 20px; font-size: 1.05em; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
         .accordion.active { border-left: 4px solid var(--accent-red); border-color: #52525b; }
-        .accordion.active .accordion-header i { transform: rotate(180deg); color: var(--accent-red); }
+        .accordion.active .accordion-header i.fa-chevron-down { transform: rotate(180deg); color: var(--accent-red); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .accordion-inner { padding: 5px 20px 20px 20px; border-top: 1px solid var(--border-color); background-color: #141417; }
 
-        .form-row { display: flex; margin-top: 15px; align-items: flex-start; }
-        .icon-circle { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; justify-content: center; align-items: center; color: white; margin-right: 15px; flex-shrink: 0; }
-        .icon-orange { background: linear-gradient(135deg, #ff9f0a, #f97316); }
-        .icon-green { background: linear-gradient(135deg, #30d158, #10b981); }
-        .icon-blue { background: linear-gradient(135deg, #0a84ff, #0284c7); }
+        .data-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
+        @media (min-width: 480px) { .data-grid { grid-template-columns: 1fr 1fr; } }
         
-        .input-fields { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; }
         .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-weight: 600; font-size: 0.8em; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
-        .input-group input, .input-group textarea, .input-group select { background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); padding: 12px 14px; outline: none; font-family: inherit; font-size: 16px; transition: var(--transition); }
-        .input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color: var(--accent-red); }
+        .input-group label { font-weight: 600; font-size: 0.8em; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .input-group label i { font-size: 1.1em; color: var(--text-muted); opacity: 0.8; width: 14px; text-align: center; }
+        .input-group input, .input-group textarea { background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); padding: 12px 14px; outline: none; font-family: inherit; font-size: 16px; transition: var(--transition); }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--accent-red); }
         .input-group textarea { resize: vertical; min-height: 80px; }
 
-        .feature-toggles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 4px; }
-        .feature-btn { font-size: 0.85em; font-weight: 600; padding: 12px 10px; text-align: center; border-radius: var(--radius-md); background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; user-select: none; }
-        .feature-btn.active { border-color: var(--accent-red); background-color: rgba(225, 29, 72, 0.15); color: var(--text-main); }
-
-        .photo-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: var(--bg-input); border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 20px; color: var(--text-muted); font-weight: 600; cursor: pointer; gap: 10px; }
+        /* Fotodokumentation */
+        .photo-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: var(--bg-input); border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 20px; color: var(--text-muted); font-weight: 600; cursor: pointer; gap: 10px; transition: var(--transition); }
         .photo-upload-label:active { background-color: var(--bg-card); border-color: var(--accent-red); color: var(--accent-red); }
         .photo-upload-label i { font-size: 1.8em; color: var(--text-main); }
-        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .photo-item { position: relative; aspect-ratio: 1; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); }
-        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-        .photo-delete-btn { position: absolute; top: 5px; right: 5px; background: var(--accent-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        
+        .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
+        .photo-item { position: relative; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; background: var(--bg-card); }
+        .photo-item img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+        .photo-delete-btn { position: absolute; top: 5px; right: 5px; background: var(--accent-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 2; }
+        .photo-note-input { background: var(--bg-input); border: none; border-top: 1px solid var(--border-color); color: var(--text-main); font-size: 0.8em; padding: 8px; width: 100%; outline: none; font-family: inherit; }
+        .photo-note-input:focus { background: var(--bg-card); }
 
+        /* Kacheln & Buttons */
         #kachelContainer { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
-        .bereich-kachel { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 18px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .bereich-kachel { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 18px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: var(--transition); }
         .bereich-kachel:active { border-color: var(--accent-red); transform: scale(0.98); }
         .kachel-info h3 { margin: 0 0 6px 0; font-size: 1.1em; font-weight: 600; color: var(--text-main); }
         .kachel-info p { margin: 0; font-size: 0.88em; color: var(--text-muted); line-height: 1.4; }
         .kachel-icon { width: 40px; height: 40px; border-radius: var(--radius-md); background-color: var(--bg-input); display: flex; justify-content: center; align-items: center; color: var(--accent-red); font-size: 1em; }
 
-        .new-area-btn { background-color: transparent; border: 2px dashed var(--border-color); border-radius: var(--radius-lg); padding: 18px 20px; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 1.05em; font-weight: 600; color: var(--text-muted); cursor: pointer; width: 100%; }
+        .new-area-btn { background-color: transparent; border: 2px dashed var(--border-color); border-radius: var(--radius-lg); padding: 18px 20px; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 1.05em; font-weight: 600; color: var(--text-muted); cursor: pointer; width: 100%; transition: var(--transition); }
         .new-area-btn:active { background-color: var(--bg-input); border-color: var(--accent-red); color: var(--text-main); }
 
+        /* Zusammenfassung */
         .summary-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; margin-top: 15px; display: flex; flex-direction: column; gap: 14px; }
         .summary-stat { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
         .summary-stat:last-child { padding-bottom: 0; border-bottom: none; }
         .stat-label { font-size: 0.9em; font-weight: 600; color: var(--text-muted); }
         .stat-value { font-size: 1.15em; font-weight: 700; color: var(--text-main); background: var(--bg-input); padding: 4px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
 
+        /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: flex-end; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        
         .modal-content { background-color: var(--bg-dark); border-top: 1px solid var(--border-color); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 25px 20px 40px 20px; display: flex; flex-direction: column; gap: 24px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         .modal-overlay.active .modal-content { transform: translateY(0); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; color: var(--text-main); }
         .modal-header h2 { margin: 0; font-size: 1.3em; font-weight: 700; }
-        .close-btn { background: var(--bg-input); border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 50%; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .close-btn { background: var(--bg-input); border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 50%; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
+        .close-btn:active { background-color: var(--bg-card); color: var(--text-main); }
 
         .modal-section-title { font-size: 0.85em; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin: 0 0 12px 0; letter-spacing: 0.05em; }
         
         .sanitar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .sanitar-item-btn { background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 15px; color: var(--text-main); font-size: 0.9em; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .sanitar-item-btn { background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 15px; color: var(--text-main); font-size: 0.9em; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: var(--transition); }
         .sanitar-item-btn:active { background-color: var(--bg-card); border-color: var(--accent-red); }
         .sanitar-item-btn i { color: var(--accent-red); font-size: 1em; opacity: 0.8; }
+        .sanitar-item-btn.custom-btn { border-style: dashed; color: var(--text-muted); background: transparent; }
+        .sanitar-item-btn.custom-btn:active { border-color: var(--text-main); color: var(--text-main); }
         
         .added-items-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-        .added-item { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.95em; }
-        .item-left-side { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
-        .item-name { font-weight: 600; color: var(--text-main); }
         
-        .water-toggles { display: flex; gap: 8px; }
-        .water-btn { font-size: 0.75em; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-sm); background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; user-select: none; }
+        /* Angepasste Einzelauflistung für In-Line Design */
+        .added-item { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.95em; gap: 10px; flex-wrap: wrap; }
+        .item-name { font-weight: 600; color: var(--text-main); flex-grow: 1; min-width: 120px; }
+        .item-right-side { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+        
+        .water-toggles { display: flex; gap: 6px; }
+        .water-btn { font-size: 0.75em; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-sm); background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; user-select: none; transition: var(--transition); }
         .water-btn.kw.active { border-color: var(--accent-blue); background-color: rgba(14, 165, 233, 0.15); color: var(--accent-blue); }
         .water-btn.ww.active { border-color: var(--accent-orange); background-color: rgba(249, 115, 22, 0.15); color: var(--accent-orange); }
 
-        .zapfstellen-container { display: flex; flex-direction: column; gap: 8px; background: var(--bg-input); padding: 12px 14px; border-radius: var(--radius-sm); width: 100%; }
-        .zapfstellen-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9em; color: var(--text-muted); }
-        .zapfstellen-row label { font-weight: 600; }
-        .zapfstellen-input { width: 60px; background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 5px; padding: 6px 8px; text-align: center; outline: none; font-size: 16px; font-weight: 700; }
-        .zapfstellen-input:focus { border-color: var(--accent-red); }
-
-        .item-controls { display: flex; align-items: center; margin-left: 15px; }
-        .remove-btn { color: var(--text-muted); font-size: 1.2em; padding: 10px; cursor: pointer; }
+        /* Waschrinne In-Line */
+        .zapfstellen-container-inline { display: flex; gap: 8px; align-items: center; }
+        .zapfstellen-input-group { display: flex; align-items: center; gap: 4px; background: var(--bg-input); padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
+        .zapfstellen-input-group label { font-size: 0.75em; font-weight: 600; margin: 0; }
+        .zapfstellen-input { width: 35px; background: transparent; border: none; color: var(--text-main); text-align: center; outline: none; font-size: 14px; font-weight: 700; padding: 0; }
+        
+        .remove-btn { color: var(--text-muted); font-size: 1.1em; cursor: pointer; transition: var(--transition); margin-left: 5px; }
         .remove-btn:active { color: var(--accent-red); }
         
-        .save-modal-btn { background-color: var(--accent-red); color: white; border: none; border-radius: var(--radius-md); padding: 16px; font-size: 1.05em; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
-        .delete-area-btn { background: none; border: none; color: var(--text-muted); font-size: 0.9em; cursor: pointer; text-align: center; text-decoration: underline; width: 100%; padding: 10px; }
+        .save-modal-btn { background-color: var(--accent-red); color: white; border: none; border-radius: var(--radius-md); padding: 16px; font-size: 1.05em; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: var(--transition); }
+        .save-modal-btn:active { background-color: #be123c; transform: scale(0.98); }
+        .delete-area-btn { background: none; border: none; color: var(--text-muted); font-size: 0.9em; cursor: pointer; text-align: center; text-decoration: underline; width: 100%; padding: 10px; transition: var(--transition); }
+        .delete-area-btn:active { color: var(--accent-red); }
         
-        /* Reset App Button */
-        .reset-app-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px; width: 100%; border-radius: var(--radius-md); margin-top: 20px; font-size: 0.9em; cursor: pointer; }
+        .reset-app-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px; width: 100%; border-radius: var(--radius-md); margin-top: 20px; font-size: 0.95em; cursor: pointer; font-weight: 600; transition: var(--transition); }
+        .reset-app-btn:active { background: var(--bg-card); color: var(--accent-red); border-color: var(--accent-red); }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div class="header-date">
-            Datum: <span id="currentDate">Lade...</span>
+        <!-- Top Bar: Datum und Projekt-Nr -->
+        <div class="top-header-bar">
+            <div class="header-date">
+                Datum: <span id="currentDate">Lade...</span>
+            </div>
+            <div class="header-project-nr">
+                <label for="projektNummer">Projekt-Nr:</label>
+                <input type="text" id="projektNummer" placeholder="z.B. PRJ-123" oninput="saveData()">
+            </div>
         </div>
 
         <div class="project-section">
             <div class="project-input-group">
+                <label for="projektName"><i class="fas fa-folder-open"></i></label>
                 <input type="text" id="projektName" placeholder="Projektname / Bauvorhaben..." oninput="saveData()">
             </div>
-            <button class="action-btn" title="PDF Erstellen" onclick="exportToPDF()">
+            <!-- Download Button -->
+            <button class="action-btn" id="pdf-btn" title="PDF Erstellen" onclick="exportToPDF()">
                 <i class="fas fa-file-pdf" style="color: var(--accent-red);"></i>
             </button>
         </div>
 
-        <div class="divider">Stammdaten</div>
+        <div class="divider">Projektdaten</div>
 
         <div class="accordion" id="accKunde">
             <div class="accordion-header" onclick="toggleAccordion('accKunde')">
-                Kunde & Ansprechpartner <i class="fas fa-chevron-down"></i>
+                Kundendaten <i class="fas fa-chevron-down"></i>
             </div>
             <div class="accordion-content">
                 <div class="accordion-inner">
-                    <div class="form-row">
-                        <div class="icon-circle icon-orange"><i class="fas fa-user"></i></div>
-                        <div class="input-fields">
-                            <div class="input-group"><label>Firma / Name</label><input type="text" id="k-firma" oninput="saveData()"></div>
-                            <div class="input-group"><label>Ansprechpartner</label><input type="text" id="k-kontakt" oninput="saveData()"></div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="icon-circle icon-green"><i class="fas fa-home"></i></div>
-                        <div class="input-fields">
-                            <div class="input-group"><label>Straße & Hausnummer</label><input type="text" id="k-strasse" oninput="saveData()"></div>
-                            <div class="input-group"><label>PLZ & Stadt</label><input type="text" id="k-stadt" oninput="saveData()"></div>
-                        </div>
+                    <div class="data-grid">
+                        <div class="input-group"><label><i class="fas fa-building"></i> Firma / Name</label><input type="text" id="k-firma" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-road"></i> Straße & Hausnummer</label><input type="text" id="k-strasse" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-city"></i> PLZ & Stadt</label><input type="text" id="k-stadt" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-user-tie"></i> Ansprechpartner</label><input type="text" id="k-kontakt" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-phone"></i> Telefonnummer</label><input type="tel" id="k-telefon" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-envelope"></i> E-Mail Adresse</label><input type="email" id="k-email" oninput="saveData()"></div>
                     </div>
                 </div>
             </div>
@@ -203,19 +224,13 @@
             </div>
             <div class="accordion-content">
                 <div class="accordion-inner">
-                    <div class="form-row">
-                        <div class="icon-circle icon-blue"><i class="fas fa-building"></i></div>
-                        <div class="input-fields">
-                            <div class="input-group"><label>Objektname</label><input type="text" id="o-firma" oninput="saveData()"></div>
-                            <div class="input-group"><label>Gebäudeteil</label><input type="text" id="o-gebaeude" oninput="saveData()"></div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="icon-circle icon-green"><i class="fas fa-map-marker-alt"></i></div>
-                        <div class="input-fields">
-                            <div class="input-group"><label>Straße & Hausnummer</label><input type="text" id="o-strasse" oninput="saveData()"></div>
-                            <div class="input-group"><label>PLZ & Stadt</label><input type="text" id="o-stadt" oninput="saveData()"></div>
-                        </div>
+                    <div class="data-grid">
+                        <div class="input-group"><label><i class="fas fa-building"></i> Objektname</label><input type="text" id="o-firma" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-road"></i> Straße & Hausnummer</label><input type="text" id="o-strasse" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-city"></i> PLZ & Stadt</label><input type="text" id="o-stadt" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-user-tie"></i> Ansprechpartner</label><input type="text" id="o-ansprechpartner" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-phone"></i> Telefonnummer</label><input type="tel" id="o-telefon" oninput="saveData()"></div>
+                        <div class="input-group"><label><i class="fas fa-envelope"></i> E-Mail Adresse</label><input type="email" id="o-email" oninput="saveData()"></div>
                     </div>
                 </div>
             </div>
@@ -247,6 +262,7 @@
         <button class="reset-app-btn" onclick="resetApp()"><i class="fas fa-trash-alt"></i> Alle Daten zurücksetzen</button>
     </div>
 
+    <!-- MODAL POP-UP -->
     <div class="modal-overlay" id="areaModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -254,24 +270,15 @@
                 <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
 
+            <!-- Angepasste Bezeichnungen -->
             <div class="input-group">
-                <label>Bezeichnung des Bereichs</label>
+                <label><i class="fas fa-tag"></i> Bereich</label>
                 <input type="text" id="modalAreaName" oninput="updateCurrentAreaName(this.value)">
             </div>
 
             <div class="input-group">
-                <label>Notizen / Bemerkungen</label>
+                <label><i class="fas fa-pen-to-square"></i> Bemerkungen</label>
                 <textarea id="modalAreaNotes" placeholder="Zustand, Mängel festhalten..." oninput="updateCurrentAreaNotes(this.value)"></textarea>
-            </div>
-
-            <div class="input-group">
-                <label>Optionen / Dämmung</label>
-                <div class="feature-toggles-grid">
-                    <span class="feature-btn" id="feat-zirkulation" onclick="toggleAreaFeature('zirkulation')">Zirkulation</span>
-                    <span class="feature-btn" id="feat-kwGedaemmt" onclick="toggleAreaFeature('kwGedaemmt')">KW Gedämmt</span>
-                    <span class="feature-btn" id="feat-wwGedaemmt" onclick="toggleAreaFeature('wwGedaemmt')">WW Gedämmt</span>
-                    <span class="feature-btn" id="feat-zkGedaemmt" onclick="toggleAreaFeature('zkGedaemmt')">ZK Gedämmt</span>
-                </div>
             </div>
 
             <div>
@@ -317,20 +324,26 @@
         let buildingAreas = [];
         let currentEditingId = null;
 
-        const defaultSanitaryObjects = ["Waschbecken", "Dusche", "Ausgussbecken", "Waschrinne", "Außenzapfstelle", "Zapfstelle", "Heizungsbefüllung", "Systemtrenner", "Stopfen", "Kappe"];
+        // Heizungsbefüllung entfernt
+        const defaultSanitaryObjects = ["Waschbecken", "Dusche", "Ausgussbecken", "Waschrinne", "Außenzapfstelle", "Zapfstelle", "Systemtrenner", "Stopfen", "Kappe"];
 
         // --- LOCAL STORAGE (AUTO SAVE) ---
         function saveData() {
             const data = {
                 projektName: document.getElementById('projektName').value,
+                projektNummer: document.getElementById('projektNummer').value,
                 kFirma: document.getElementById('k-firma').value,
-                kKontakt: document.getElementById('k-kontakt').value,
                 kStrasse: document.getElementById('k-strasse').value,
                 kStadt: document.getElementById('k-stadt').value,
+                kKontakt: document.getElementById('k-kontakt').value,
+                kTelefon: document.getElementById('k-telefon').value,
+                kEmail: document.getElementById('k-email').value,
                 oFirma: document.getElementById('o-firma').value,
-                oGebaeude: document.getElementById('o-gebaeude').value,
                 oStrasse: document.getElementById('o-strasse').value,
                 oStadt: document.getElementById('o-stadt').value,
+                oAnsprechpartner: document.getElementById('o-ansprechpartner').value,
+                oTelefon: document.getElementById('o-telefon').value,
+                oEmail: document.getElementById('o-email').value,
                 buildingAreas: buildingAreas
             };
             localStorage.setItem('protocolAppDataPro', JSON.stringify(data));
@@ -342,15 +355,25 @@
                 try {
                     const data = JSON.parse(stored);
                     document.getElementById('projektName').value = data.projektName || '';
+                    document.getElementById('projektNummer').value = data.projektNummer || '';
                     document.getElementById('k-firma').value = data.kFirma || '';
-                    document.getElementById('k-kontakt').value = data.kKontakt || '';
                     document.getElementById('k-strasse').value = data.kStrasse || '';
                     document.getElementById('k-stadt').value = data.kStadt || '';
+                    document.getElementById('k-kontakt').value = data.kKontakt || '';
+                    document.getElementById('k-telefon').value = data.kTelefon || '';
+                    document.getElementById('k-email').value = data.kEmail || '';
                     document.getElementById('o-firma').value = data.oFirma || '';
-                    document.getElementById('o-gebaeude').value = data.oGebaeude || '';
                     document.getElementById('o-strasse').value = data.oStrasse || '';
                     document.getElementById('o-stadt').value = data.oStadt || '';
-                    buildingAreas = data.buildingAreas || [];
+                    document.getElementById('o-ansprechpartner').value = data.oAnsprechpartner || '';
+                    document.getElementById('o-telefon').value = data.oTelefon || '';
+                    document.getElementById('o-email').value = data.oEmail || '';
+                    
+                    // Cleanup old features property just in case
+                    buildingAreas = (data.buildingAreas || []).map(area => {
+                        delete area.features;
+                        return area;
+                    });
                     renderAreas();
                 } catch(e) { console.error("Could not load data", e); }
             }
@@ -392,7 +415,6 @@
                 id: newId,
                 name: "Neuer Gebäudebereich",
                 notes: "",
-                features: { zirkulation: false, kwGedaemmt: false, wwGedaemmt: false, zkGedaemmt: false },
                 items: [],
                 photos: []
             });
@@ -427,15 +449,6 @@
             buildingAreas.forEach(area => {
                 let total = area.items.length;
                 let text = total === 0 ? 'Keine Entnahmestellen' : total === 1 ? '1 Entnahmestelle' : total + ' Entnahmestellen';
-                let activeFeatures = [];
-                if (area.features) {
-                    if (area.features.zirkulation) activeFeatures.push("Zirkulation");
-                    if (area.features.kwGedaemmt) activeFeatures.push("KW Gedämmt");
-                    if (area.features.wwGedaemmt) activeFeatures.push("WW Gedämmt");
-                    if (area.features.zkGedaemmt) activeFeatures.push("ZK Gedämmt");
-                }
-                
-                let featuresPreview = activeFeatures.length > 0 ? `<br><span style="color: var(--accent-red); font-size: 0.82em; font-weight: 600;">🏷️ ${activeFeatures.join(', ')}</span>` : '';
                 let photoPreview = (area.photos && area.photos.length > 0) ? ` | <span style="color:var(--text-main);">📸 ${area.photos.length} Foto(s)</span>` : '';
                 let notesPreview = area.notes ? `<br><span style="color: var(--text-muted); font-size: 0.85em; display:inline-block; margin-top:4px;">📝 ${area.notes.substring(0, 38)}${area.notes.length > 38 ? '...' : ''}</span>` : '';
 
@@ -445,7 +458,7 @@
                 kachel.innerHTML = `
                     <div class="kachel-info">
                         <h3>${area.name}</h3>
-                        <p>${text}${photoPreview}${featuresPreview}${notesPreview}</p>
+                        <p>${text}${photoPreview}${notesPreview}</p>
                     </div>
                     <div class="kachel-icon"><i class="fas fa-chevron-right"></i></div>
                 `;
@@ -460,29 +473,11 @@
             document.getElementById('modalAreaName').value = area.name;
             document.getElementById('modalAreaNotes').value = area.notes;
             
-            if (!area.features) area.features = { zirkulation: false, kwGedaemmt: false, wwGedaemmt: false, zkGedaemmt: false };
             if (!area.photos) area.photos = [];
-
-            ['zirkulation', 'kwGedaemmt', 'wwGedaemmt', 'zkGedaemmt'].forEach(f => {
-                const btn = document.getElementById(`feat-${f}`);
-                if (area.features[f]) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
 
             renderPhotos();
             renderAddedItemsList();
             document.getElementById('areaModal').classList.add('active');
-        }
-
-        function toggleAreaFeature(featureKey) {
-            const area = buildingAreas.find(a => a.id === currentEditingId);
-            if (area) {
-                area.features[featureKey] = !area.features[featureKey];
-                const btn = document.getElementById(`feat-${featureKey}`);
-                if (area.features[featureKey]) btn.classList.add('active');
-                else btn.classList.remove('active');
-                saveData();
-            }
         }
 
         function closeModal() {
@@ -500,7 +495,6 @@
             if(area) { area.notes = val; saveData(); }
         }
 
-        // --- BILD KOMPRESSION FÜR STABILITÄT ---
         function handlePhotoUpload(input) {
             const area = buildingAreas.find(a => a.id === currentEditingId);
             if (input.files && input.files.length > 0) {
@@ -510,7 +504,7 @@
                         const img = new Image();
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
-                            const MAX_SIZE = 800; // Verhindert RAM-Abstürze
+                            const MAX_SIZE = 800;
                             let width = img.width;
                             let height = img.height;
 
@@ -524,7 +518,10 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            area.photos.push(canvas.toDataURL('image/jpeg', 0.6)); // 60% Qualität
+                            area.photos.push({
+                                data: canvas.toDataURL('image/jpeg', 0.6),
+                                note: ""
+                            });
                             renderPhotos();
                             saveData();
                         }
@@ -536,16 +533,27 @@
             input.value = ""; 
         }
 
+        function updatePhotoNote(index, val) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (area && area.photos[index]) {
+                area.photos[index].note = val;
+                saveData();
+            }
+        }
+
         function renderPhotos() {
             const area = buildingAreas.find(a => a.id === currentEditingId);
             const grid = document.getElementById('photoGrid');
             grid.innerHTML = '';
             if (area && area.photos) {
-                area.photos.forEach((photoData, index) => {
+                area.photos.forEach((photo, index) => {
                     grid.innerHTML += `
                         <div class="photo-item">
-                            <img src="${photoData}" alt="Doku Foto">
-                            <div class="photo-delete-btn" onclick="deletePhoto(${index})"><i class="fas fa-times"></i></div>
+                            <div style="position: relative; width: 100%; aspect-ratio: 1;">
+                                <img src="${photo.data}" alt="Doku Foto">
+                                <div class="photo-delete-btn" onclick="deletePhoto(${index})"><i class="fas fa-times"></i></div>
+                            </div>
+                            <input type="text" class="photo-note-input" placeholder="Bemerkung..." value="${photo.note || ''}" oninput="updatePhotoNote(${index}, this.value)">
                         </div>
                     `;
                 });
@@ -616,7 +624,7 @@
         }
 
         function deleteCurrentArea() {
-            if (confirm('Möchtest du diesen Gebäudebereich komplett löschen?')) {
+            if (confirm('Möchtest du diesen Bereich komplett löschen?')) {
                 buildingAreas = buildingAreas.filter(a => a.id !== currentEditingId);
                 saveData();
                 closeModal();
@@ -640,18 +648,18 @@
                 let waterSectionHTML = '';
                 if (item.name === "Waschrinne") {
                     waterSectionHTML = `
-                        <div class="zapfstellen-container">
-                            <div class="zapfstellen-row">
-                                <label>Zapfstellen gesamt:</label>
+                        <div class="zapfstellen-container-inline">
+                            <div class="zapfstellen-input-group">
+                                <label style="color: var(--text-muted);">Z:</label>
                                 <input type="number" min="1" class="zapfstellen-input" value="${item.zapfstellen || 2}" onchange="updateZapfstellen(${index}, this.value)">
                             </div>
-                            <div class="zapfstellen-row" style="margin-top: 8px;">
-                                <label style="color: var(--accent-blue);">Anzahl KW:</label>
-                                <input type="number" min="0" class="zapfstellen-input" style="border-color: var(--border-color);" value="${item.kwCount !== undefined ? item.kwCount : 2}" onchange="updateWaschrinneWater(${index}, 'kw', this.value)">
+                            <div class="zapfstellen-input-group">
+                                <label style="color: var(--accent-blue);">KW:</label>
+                                <input type="number" min="0" class="zapfstellen-input" value="${item.kwCount !== undefined ? item.kwCount : 2}" onchange="updateWaschrinneWater(${index}, 'kw', this.value)">
                             </div>
-                            <div class="zapfstellen-row" style="margin-top: 8px;">
-                                <label style="color: var(--accent-orange);">Anzahl WW:</label>
-                                <input type="number" min="0" class="zapfstellen-input" style="border-color: var(--border-color);" value="${item.wwCount !== undefined ? item.wwCount : 2}" onchange="updateWaschrinneWater(${index}, 'ww', this.value)">
+                            <div class="zapfstellen-input-group">
+                                <label style="color: var(--accent-orange);">WW:</label>
+                                <input type="number" min="0" class="zapfstellen-input" value="${item.wwCount !== undefined ? item.wwCount : 2}" onchange="updateWaschrinneWater(${index}, 'ww', this.value)">
                             </div>
                         </div>
                     `;
@@ -665,11 +673,9 @@
                 }
 
                 li.innerHTML = `
-                    <div class="item-left-side">
-                        <span class="item-name">${item.name}</span>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-right-side">
                         ${waterSectionHTML}
-                    </div>
-                    <div class="item-controls">
                         <i class="fas fa-trash-can remove-btn" onclick="removeSanitaryObject(${index})"></i>
                     </div>
                 `;
@@ -677,188 +683,225 @@
             });
         }
 
-        // --- PDF EXPORT ---
+        // --- KOMPLETT NEUER PDF EXPORT (COMPACT TECH STYLE) ---
         function exportToPDF() {
-            const projektName = document.getElementById('projektName').value.trim() || 'Unbenanntes Projekt';
+            const pdfBtn = document.getElementById('pdf-btn');
+            const originalIconHTML = pdfBtn.innerHTML;
+            pdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="color: var(--accent-red);"></i>';
+            pdfBtn.style.pointerEvents = 'none';
+
+            const projektName = document.getElementById('projektName').value.trim() || 'Projektdokumentation';
+            const projektNummer = document.getElementById('projektNummer').value.trim() || '—';
             const datum = document.getElementById('currentDate').textContent;
             
+            const kFirma = document.getElementById('k-firma').value.trim() || '—';
+            const kStrasse = document.getElementById('k-strasse').value.trim() || '—';
+            const kStadt = document.getElementById('k-stadt').value.trim() || '—';
+            const kKontakt = document.getElementById('k-kontakt').value.trim() || '—';
+            const kTelefon = document.getElementById('k-telefon').value.trim() || '—';
+            const kEmail = document.getElementById('k-email').value.trim() || '—';
+
+            const oFirma = document.getElementById('o-firma').value.trim() || '—';
+            const oStrasse = document.getElementById('o-strasse').value.trim() || '—';
+            const oStadt = document.getElementById('o-stadt').value.trim() || '—';
+            const oKontakt = document.getElementById('o-ansprechpartner').value.trim() || '—';
+            const oTelefon = document.getElementById('o-telefon').value.trim() || '—';
+            const oEmail = document.getElementById('o-email').value.trim() || '—';
+
             const printElement = document.createElement('div');
-            printElement.style.padding = '30px';
+            printElement.style.padding = '30px 40px';
             printElement.style.fontFamily = "'Arial', 'Helvetica', sans-serif";
-            printElement.style.color = '#222';
-            printElement.style.backgroundColor = '#fff';
+            printElement.style.color = '#1e293b';
+            printElement.style.backgroundColor = '#ffffff';
 
             let htmlStructure = `
-                <div style="border-bottom: 4px solid #e11d48; padding-bottom: 15px; margin-bottom: 25px; display: table; width: 100%;">
-                    <div style="display: table-cell; vertical-align: middle;">
-                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #111; text-transform: uppercase;">Technisches Datenblatt</h1>
-                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #555;">Projekt-Erfassungsprotokoll</p>
-                    </div>
-                    <div style="display: table-cell; text-align: right; vertical-align: middle; font-size: 12px; color: #444;">
-                        <strong>Datum:</strong> ${datum}<br>
-                        <strong>Projekt-ID:</strong> PRJ-${Math.floor(1000 + Math.random() * 9000)}
+                <!-- Clean Dark Header -->
+                <div style="background-color: #0f172a; color: #ffffff; padding: 25px 30px; border-radius: 8px; margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="flex-grow: 1;">
+                            <h1 style="margin: 0 0 5px 0; font-size: 24px; font-weight: 800; text-transform: uppercase;">${projektName}</h1>
+                            <div style="font-size: 12px; color: #94a3b8;">Projekt-Nr: <strong style="color: #ffffff;">${projektNummer}</strong></div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; color: #e11d48; text-transform: uppercase; margin-bottom: 4px; font-size: 12px;">Protokoll</div>
+                            <div style="font-size: 12px; color: #94a3b8;">Datum: <strong style="color: #ffffff;">${datum}</strong></div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 30px;">
-                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #e11d48;">Projektbezeichnung</span>
-                    <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 2px;">${projektName}</div>
-                </div>
-
-                <div style="display: table; width: 100%; margin-bottom: 35px; table-layout: fixed; border-spacing: 15px 0;">
-                    <div style="display: table-cell; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; vertical-align: top;">
-                        <h3 style="margin: 0 0 10px 0; font-size: 13px; border-bottom: 2px solid #64748b; padding-bottom: 4px; text-transform: uppercase; color: #475569;">Kunde</h3>
-                        <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-                            <tr><td style="padding: 3px 0; width:40%;">Firma:</td><td style="font-weight:600;">${document.getElementById('k-firma').value || '—'}</td></tr>
-                            <tr><td style="padding: 3px 0;">Kontakt:</td><td>${document.getElementById('k-kontakt').value || '—'}</td></tr>
-                            <tr><td style="padding: 3px 0;">Straße:</td><td>${document.getElementById('k-strasse').value || '—'}</td></tr>
-                            <tr><td style="padding: 3px 0;">Ort:</td><td>${document.getElementById('k-stadt').value || '—'}</td></tr>
-                        </table>
-                    </div>
-
-                    <div style="display: table-cell; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; vertical-align: top;">
-                        <h3 style="margin: 0 0 10px 0; font-size: 13px; border-bottom: 2px solid #64748b; padding-bottom: 4px; text-transform: uppercase; color: #475569;">Objekt</h3>
-                        <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-                            <tr><td style="padding: 3px 0; width:40%;">Objekt:</td><td style="font-weight:600;">${document.getElementById('o-firma').value || '—'}</td></tr>
-                            <tr><td style="padding: 3px 0;">Gebäude:</td><td>${document.getElementById('o-gebaeude').value || '—'}</td></tr>
-                            <tr><td style="padding: 3px 0;">Straße:</td><td>${document.getElementById('o-strasse').value || '—'}</td></tr>
-                            <tr><td style="padding: 3px 0;">Ort:</td><td>${document.getElementById('o-stadt').value || '—'}</td></tr>
-                        </table>
-                    </div>
-                </div>
+                <!-- Stammdaten Compact Grid -->
+                <table style="width: 100%; margin-bottom: 30px; border-collapse: collapse;">
+                    <tr>
+                        <!-- Kunde -->
+                        <td style="width: 50%; vertical-align: top; padding-right: 15px;">
+                            <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; height: 100%;">
+                                <div style="font-size: 11px; font-weight: 700; color: #e11d48; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px;">Kundendaten</div>
+                                <table style="width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.6;">
+                                    <tr><td style="width: 60px; color: #64748b; font-weight: 600;">Firma:</td><td style="font-weight: 700; color: #0f172a;">${kFirma}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Adresse:</td><td style="color: #334155;">${kStrasse}<br>${kStadt}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600;">Kontakt:</td><td style="color: #334155;">${kKontakt}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600;">Telefon:</td><td style="color: #334155;">${kTelefon}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600;">E-Mail:</td><td style="color: #334155;">${kEmail}</td></tr>
+                                </table>
+                            </div>
+                        </td>
+                        <!-- Objekt -->
+                        <td style="width: 50%; vertical-align: top; padding-left: 15px;">
+                            <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; height: 100%;">
+                                <div style="font-size: 11px; font-weight: 700; color: #0ea5e9; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px;">Objektdaten</div>
+                                <table style="width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.6;">
+                                    <tr><td style="width: 60px; color: #64748b; font-weight: 600;">Objekt:</td><td style="font-weight: 700; color: #0f172a;">${oFirma}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Adresse:</td><td style="color: #334155;">${oStrasse}<br>${oStadt}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600;">Kontakt:</td><td style="color: #334155;">${oKontakt}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600;">Telefon:</td><td style="color: #334155;">${oTelefon}</td></tr>
+                                    <tr><td style="color: #64748b; font-weight: 600;">E-Mail:</td><td style="color: #334155;">${oEmail}</td></tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             `;
 
             let pdfObjectsCount = 0; let pdfKWCount = 0; let pdfWWCount = 0;
 
-            if (buildingAreas.length > 0) {
-                htmlStructure += `<h2 style="font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 15px; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; text-transform: uppercase;">Gebäudebereiche & Dokumentation</h2>`;
-                
+            if (buildingAreas.length === 0) {
+                htmlStructure += `<div style="padding: 20px; background: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; font-size: 12px; text-align: center;">Es wurden keine Gebäudebereiche erfasst.</div>`;
+            } else {
                 buildingAreas.forEach(area => {
                     pdfObjectsCount += area.items.length;
+
+                    // Bereich Wrapper
                     htmlStructure += `
-                        <div style="margin-bottom: 25px; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; page-break-inside: avoid;">
-                            <div style="background-color: #18181b; padding: 10px 15px; font-weight: 700; font-size: 14px; color: #ffffff;">🏢 ${area.name}</div>
-                            <div style="padding: 15px; background: #fff;">
+                        <div style="margin-bottom: 25px; page-break-inside: avoid; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;">
+                            
+                            <!-- Area Header Clean -->
+                            <div style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; padding: 10px 15px; display: flex; align-items: center;">
+                                <div style="width: 4px; height: 16px; background-color: #e11d48; margin-right: 8px; border-radius: 2px;"></div>
+                                <h2 style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase;">${area.name}</h2>
+                            </div>
+                            
+                            <div style="padding: 15px;">
                     `;
                     
-                    if (area.items.length > 0) {
+                    if (area.items.length === 0) {
+                        htmlStructure += `<div style="font-size: 11px; color: #94a3b8; font-style: italic;">Keine Entnahmestellen dokumentiert.</div>`;
+                    } else {
                         htmlStructure += `
-                            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
                                 <thead>
-                                    <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #475569; font-size: 10px; text-transform: uppercase;">
-                                        <th style="padding: 6px 8px; width: 55%;">Entnahmestelle</th>
-                                        <th style="padding: 6px 8px; width: 45%; text-align: right;">Anschluss</th>
+                                    <tr style="color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">
+                                        <th style="padding: 6px 8px; text-align: left; width: 60%;">Entnahmestelle</th>
+                                        <th style="padding: 6px 8px; text-align: right; width: 40%;">Anschluss</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                         `;
 
                         area.items.forEach((item, idx) => {
-                            const rowBg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
+                            const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
                             let detailInfo = ''; let waterBadgesHTML = '';
 
                             if (item.name === "Waschrinne") {
-                                detailInfo = ` <br><span style="font-size: 10px; color:#64748b;">(${item.zapfstellen || 2} Zapfstellen)</span>`;
+                                detailInfo = ` <span style="font-size: 10px; color:#64748b; font-weight:normal; margin-left: 4px;">(${item.zapfstellen || 2} Zapfstellen)</span>`;
                                 let kwMenge = item.kwCount !== undefined ? item.kwCount : 2;
                                 let wwMenge = item.wwCount !== undefined ? item.wwCount : 2;
                                 pdfKWCount += kwMenge; pdfWWCount += wwMenge;
 
                                 let badges = [];
-                                if (kwMenge > 0) badges.push(`<span style="background-color: #e0f2fe; color: #0369a1; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: 700; margin-left: 2px; border: 1px solid #bae6fd;">${kwMenge}x KW</span>`);
-                                if (wwMenge > 0) badges.push(`<span style="background-color: #ffedd5; color: #c2410c; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: 700; margin-left: 2px; border: 1px solid #fed7aa;">${wwMenge}x WW</span>`);
-                                waterBadgesHTML = badges.length > 0 ? badges.join('') : `-`;
+                                if (kwMenge > 0) badges.push(`<span style="color: #0369a1; font-weight: 700; margin-left: 8px;">${kwMenge}x KW</span>`);
+                                if (wwMenge > 0) badges.push(`<span style="color: #ea580c; font-weight: 700; margin-left: 8px;">${wwMenge}x WW</span>`);
+                                waterBadgesHTML = badges.length > 0 ? badges.join('') : `<span style="color: #94a3b8;">-</span>`;
                             } else {
                                 if (item.kw) pdfKWCount++;
                                 if (item.ww) pdfWWCount++;
                                 let badges = [];
-                                if (item.kw) badges.push(`<span style="background-color: #e0f2fe; color: #0369a1; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: 700; margin-left: 2px; border: 1px solid #bae6fd;">KW</span>`);
-                                if (item.ww) badges.push(`<span style="background-color: #ffedd5; color: #c2410c; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: 700; margin-left: 2px; border: 1px solid #fed7aa;">WW</span>`);
-                                waterBadgesHTML = badges.length > 0 ? badges.join('') : `-`;
+                                if (item.kw) badges.push(`<span style="color: #0369a1; font-weight: 700; margin-left: 8px;">KW</span>`);
+                                if (item.ww) badges.push(`<span style="color: #ea580c; font-weight: 700; margin-left: 8px;">WW</span>`);
+                                waterBadgesHTML = badges.length > 0 ? badges.join('') : `<span style="color: #94a3b8;">-</span>`;
                             }
 
                             htmlStructure += `
-                                <tr style="background-color: ${rowBg}; border-bottom: 1px solid #edf2f7;">
-                                    <td style="padding: 8px; font-weight: 600; color: #1e293b;">${item.name}${detailInfo}</td>
-                                    <td style="padding: 8px; text-align: right;">${waterBadgesHTML}</td>
+                                <tr style="background-color: ${rowBg}; border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 6px 8px; font-weight: 600; color: #1e293b;">${item.name}${detailInfo}</td>
+                                    <td style="padding: 6px 8px; text-align: right;">${waterBadgesHTML}</td>
                                 </tr>
                             `;
                         });
                         htmlStructure += `</tbody></table>`;
                     }
 
-                    let pdfFeatures = [];
-                    if (area.features) {
-                        if (area.features.zirkulation) pdfFeatures.push("Zirkulation");
-                        if (area.features.kwGedaemmt) pdfFeatures.push("KW Gedämmt");
-                        if (area.features.wwGedaemmt) pdfFeatures.push("WW Gedämmt");
-                        if (area.features.zkGedaemmt) pdfFeatures.push("ZK Gedämmt");
-                    }
-                    if (pdfFeatures.length > 0) {
-                        htmlStructure += `<div style="margin-top: 10px; font-size: 10px;">`;
-                        pdfFeatures.forEach(feat => {
-                            htmlStructure += `<span style="background-color: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin-right: 6px; border: 1px solid #cbd5e1; display: inline-block;">🏷️ ${feat}</span>`;
-                        });
-                        htmlStructure += `</div>`;
-                    }
-
+                    // Bemerkungen
                     if (area.notes && area.notes.trim() !== '') {
                         htmlStructure += `
-                            <div style="margin-top: 12px; padding: 8px 10px; background-color: #fff1f2; border-left: 3px solid #e11d48; font-size: 11px; color: #1e293b; border-radius: 0 4px 4px 0;">
-                                <strong style="color: #9f1239;">Notizen & Befund:</strong><br>${area.notes.replace(/\n/g, '<br>')}
+                            <div style="margin-bottom: 15px; padding: 8px 12px; background-color: #f8fafc; border-left: 3px solid #64748b; font-size: 11px; color: #334155; border-radius: 4px;">
+                                <strong style="color: #0f172a; text-transform: uppercase;">Bemerkungen:</strong><br>
+                                <div style="margin-top: 2px; line-height: 1.4;">${area.notes.replace(/\n/g, '<br>')}</div>
                             </div>
                         `;
                     }
 
+                    // Fotodokumentation
                     if (area.photos && area.photos.length > 0) {
                         htmlStructure += `
-                            <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
-                                <strong style="font-size: 11px; color: #475569;">Fotodokumentation (${area.photos.length} Bild/er):</strong>
-                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                            <div style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                                <div style="font-size: 10px; color: #0f172a; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Fotodokumentation (${area.photos.length})</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                         `;
-                        area.photos.forEach(photoSrc => {
-                            htmlStructure += `<img src="${photoSrc}" style="width: 140px; height: 140px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">`;
+                        area.photos.forEach(photo => {
+                            let noteHtml = photo.note ? `<div style="font-size: 9px; color: #64748b; margin-top: 4px; text-align: center; width: 140px; word-wrap: break-word;">${photo.note}</div>` : '';
+                            htmlStructure += `
+                                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 8px;">
+                                    <img src="${photo.data}" style="width: 140px; height: 140px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">
+                                    ${noteHtml}
+                                </div>
+                            `;
                         });
                         htmlStructure += `</div></div>`;
                     }
-                    htmlStructure += `</div></div>`;
+                    htmlStructure += `</div></div>`; // End Area Content + Wrapper
                 });
             }
 
+            // Gesamtübersicht als kompakter Daten-Banner am Ende
             htmlStructure += `
-                <div style="margin-top: 35px; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; page-break-inside: avoid;">
-                    <div style="background-color: #e11d48; padding: 10px 15px; font-weight: 700; font-size: 13px; color: #ffffff; text-transform: uppercase;">
-                        📊 Gesamtübersicht
+                <div style="margin-top: 30px; page-break-inside: avoid;">
+                    <div style="background-color: #0f172a; border-radius: 8px; padding: 15px; color: #ffffff;">
+                        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; color: #94a3b8;">Zusammenfassung</div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <tr>
+                                <td style="width: 33.33%; text-align: center; border-right: 1px solid #334155;">
+                                    <div style="color: #94a3b8; font-weight: 600; font-size: 10px; text-transform: uppercase;">Objekte</div>
+                                    <div style="font-weight: 800; font-size: 20px; margin-top: 4px;">${pdfObjectsCount}</div>
+                                </td>
+                                <td style="width: 33.33%; text-align: center; border-right: 1px solid #334155;">
+                                    <div style="color: #38bdf8; font-weight: 600; font-size: 10px; text-transform: uppercase;">Kaltwasser (KW)</div>
+                                    <div style="color: #bae6fd; font-weight: 800; font-size: 20px; margin-top: 4px;">${pdfKWCount}x</div>
+                                </td>
+                                <td style="width: 33.33%; text-align: center;">
+                                    <div style="color: #fb923c; font-weight: 600; font-size: 10px; text-transform: uppercase;">Warmwasser (WW)</div>
+                                    <div style="color: #fed7aa; font-weight: 800; font-size: 20px; margin-top: 4px;">${pdfWWCount}x</div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: #ffffff;">
-                        <tr style="border-bottom: 1px solid #edf2f7;">
-                            <td style="padding: 10px 15px; font-weight: 600;">Entnahmestellen gesamt:</td>
-                            <td style="padding: 10px 15px; text-align: right; font-weight: 700; font-size: 13px;">${pdfObjectsCount}</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #edf2f7; background-color: #f8fafc;">
-                            <td style="padding: 10px 15px; font-weight: 600; color: #0369a1;">Kaltwasser (KW) gesamt:</td>
-                            <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #0369a1; font-size: 13px;">${pdfKWCount}x</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; font-weight: 600; color: #c2410c;">Warmwasser (WW) gesamt:</td>
-                            <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #c2410c; font-size: 13px;">${pdfWWCount}x</td>
-                        </tr>
-                    </table>
-                </div>
-                <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: center; font-size: 9px; color: #94a3b8;">
-                    Generiert mit ProtocolApp Pro am ${datum}
                 </div>
             `;
 
             printElement.innerHTML = htmlStructure;
 
             const opt = {
-                margin:       10,
-                filename:     `Protokoll_${projektName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.95 },
+                margin:       [10, 15, 10, 15], 
+                filename:     `${projektNummer}_${projektName.replace(/[^a-zA-Z0-9]/g, '_') || 'Export'}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, logging: false },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(printElement).save();
+            
+            html2pdf().set(opt).from(printElement).save().then(() => {
+                pdfBtn.innerHTML = originalIconHTML;
+                pdfBtn.style.pointerEvents = 'auto';
+            });
         }
 
         // Init Load & PWA
