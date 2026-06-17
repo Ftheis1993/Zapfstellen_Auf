@@ -5,17 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ProtocolApp Pro</title>
     
+    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#09090b">
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ProtocolApp">
     
+    <!-- FontAwesome & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -143,7 +146,6 @@
         
         .trash-btn { color: var(--text-dim); background: transparent; border: none; font-size: 1.1em; cursor: pointer; padding: 5px; margin-left: 5px; }
         .trash-btn:active { color: var(--accent-primary); }
-
     </style>
 </head>
 <body>
@@ -183,6 +185,7 @@
         </button>
     </div>
 
+    <!-- MODAL POP-UP -->
     <div class="modal-overlay" id="areaModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -224,6 +227,7 @@
         let buildingAreas = [];
         let currentEditingId = null;
 
+        // Gewünschte Entnahmestellen
         const defaultSanitaryObjects = [
             "Waschbecken", "Spülbecken", "Ausgussbecken", "WC", 
             "Dusche", "Gerätezapfstelle", "Zapfstelle", "Außenzapfstelle"
@@ -535,12 +539,15 @@
             });
         }
 
-        // --- AUSFALLSICHERES PDF EXPORT (MIT SEITENZAHLEN) ---
+        // --- AUSFALLSICHERES PDF EXPORT ---
+        // "Langsam aber Richtig" Strategie: Rendert unsichtbar aber im DOM, wartet 2,5 Sekunden für perfekte Bilder!
         function exportToPDF(summaryOnly) {
             const pdfBtnId = summaryOnly ? 'pdf-summary-btn' : 'pdf-full-btn';
             const pdfBtn = document.getElementById(pdfBtnId);
             const originalIconHTML = pdfBtn.innerHTML;
-            pdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Lade...';
+            
+            // Benutzer signalisieren, dass es nun bewusst etwas länger dauert
+            pdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Erstelle PDF (Bitte warten...)';
             pdfBtn.style.pointerEvents = 'none';
 
             const projektName = document.getElementById('projektName').value.trim() || 'Projekt';
@@ -564,6 +571,7 @@
             let htmlString = `
             <div style="width: 800px; padding: 20px 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; background-color: #fff; box-sizing: border-box;">
                 
+                <!-- STARTSEITE / HEADER -->
                 <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">
                     <div style="font-size: 16px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
                         ${summaryOnly ? 'Entnahmestellen-Übersicht' : 'Erfassungsprotokoll'}
@@ -584,7 +592,7 @@
             } else {
                 buildingAreas.forEach((area, index) => {
                     
-                    // JEDER BEREICH BEKOMMT EINE NEUE SEITE (außer der erste Bereich direkt unterm Header)
+                    // NEUE SEITE FÜR JEDEN BEREICH
                     if(index > 0) {
                         htmlString += `<div style="page-break-before: always;"></div>`;
                     }
@@ -642,7 +650,7 @@
                         htmlString += `<div style="font-size: 14px; color: #666; font-style: italic; margin-bottom: 15px; padding-left: 15px;">Keine Entnahmestellen.</div>`;
                     }
 
-                    // BEMERKUNGEN (Nicht in der Summary-Only Ansicht)
+                    // BEMERKUNG (Nicht in Summary-Only)
                     if (!summaryOnly && area.notes && area.notes.trim() !== '') {
                         htmlString += `
                             <div style="font-size: 14px; margin-bottom: 20px; padding: 15px; background: #fafafa; border: 1px solid #ddd;">
@@ -652,46 +660,42 @@
                         `;
                     }
 
-                    // FOTOS (Nicht in der Summary-Only Ansicht)
+                    // FOTOS: Unzertrennbare TABELLENSTRUKTUR für Bilder
                     if (!summaryOnly && area.photos && area.photos.length > 0) {
                         htmlString += `
                             <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #000; padding-bottom: 5px;">
                                 Fotodokumentation
                             </div>
-                            <div style="width: 100%; font-size: 0;">
                         `;
                         
                         for (let i = 0; i < area.photos.length; i += 2) {
                             let photo1 = area.photos[i];
                             let photo2 = area.photos[i+1];
                             
-                            htmlString += `<div class="keep-together" style="width: 100%; margin-bottom: 25px; display: block;">`;
-                            
-                            // Bild 1
+                            // Die Tabelle mit keep-together verhindert exakt, dass ein Bild-Paar zerschnitten wird!
                             htmlString += `
-                                <div style="display: inline-block; width: 48%; vertical-align: top; font-size: 14px; margin-right: 2%;">
-                                    <img src="${photo1.data}" style="width: 100%; height: auto; max-height: 400px; object-fit: contain; border: 1px solid #000; display: block;">
-                                    ${photo1.note ? `<div style="padding: 8px; text-align: center; color: #333; background: #f9f9f9; border: 1px solid #eee; border-top: none;">${photo1.note}</div>` : ''}
-                                </div>
+                                <table class="keep-together" style="width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed; page-break-inside: avoid;">
+                                    <tr>
+                                        <td style="width: 48%; vertical-align: top; text-align: center; padding-right: 2%;">
+                                            <img src="${photo1.data}" style="max-width: 100%; height: 350px; object-fit: contain; border: 1px solid #000; display: block; margin: 0 auto;">
+                                            ${photo1.note ? `<div style="font-size: 12px; margin-top: 8px; padding: 6px; background: #f5f5f5; border: 1px solid #eee;">${photo1.note}</div>` : ''}
+                                        </td>
+                                        <td style="width: 4%;"></td>
+                                        <td style="width: 48%; vertical-align: top; text-align: center; padding-left: 2%;">
+                                            ${photo2 ? `
+                                                <img src="${photo2.data}" style="max-width: 100%; height: 350px; object-fit: contain; border: 1px solid #000; display: block; margin: 0 auto;">
+                                                ${photo2.note ? `<div style="font-size: 12px; margin-top: 8px; padding: 6px; background: #f5f5f5; border: 1px solid #eee;">${photo2.note}</div>` : ''}
+                                            ` : ''}
+                                        </td>
+                                    </tr>
+                                </table>
                             `;
-
-                            // Bild 2
-                            if (photo2) {
-                                htmlString += `
-                                    <div style="display: inline-block; width: 48%; vertical-align: top; font-size: 14px; margin-left: 2%;">
-                                        <img src="${photo2.data}" style="width: 100%; height: auto; max-height: 400px; object-fit: contain; border: 1px solid #000; display: block;">
-                                        ${photo2.note ? `<div style="padding: 8px; text-align: center; color: #333; background: #f9f9f9; border: 1px solid #eee; border-top: none;">${photo2.note}</div>` : ''}
-                                    </div>
-                                `;
-                            }
-                            htmlString += `</div>`;
                         }
-                        htmlString += `</div>`;
                     }
-                    htmlString += `</div>`;
+                    htmlString += `</div>`; // Ende Bereich
                 });
                 
-                // ZUSAMMENFASSUNG AM ENDE (Bekommt auch eine neue Seite, damit es sauber aussieht)
+                // ZUSAMMENFASSUNG AM ENDE (Neue Seite)
                 htmlString += `
                     <div style="page-break-before: always;"></div>
                     <h2 style="font-size: 20px; font-weight: bold; margin: 0 0 20px 0; text-transform: uppercase; background: #000; color: #fff; padding: 15px;">
@@ -717,33 +721,43 @@
 
             htmlString += `</div>`; // Ende Dokument
 
-            // Container ans Ende der Seite werfen, aber ohne CSS Hacks, die iOS durcheinanderbringen
+            // Um das iOS Problem der leeren weißen Seiten zu lösen: 
+            // Das Element wird normal gerendert, aber extrem weit links aus dem Bildschirm geschoben (-3000px).
+            // Kein opacity, kein z-index: -1. Es existiert voll und ganz, man sieht es nur nicht.
             const printElement = document.createElement('div');
             printElement.style.position = 'absolute';
             printElement.style.top = '0';
-            printElement.style.left = '0';
-            printElement.style.zIndex = '-1000'; // Liegt unsichtbar HINTER der App, wird also einwandfrei gerendert
+            printElement.style.left = '-3000px'; 
+            printElement.style.width = '800px'; 
+            printElement.style.backgroundColor = '#fff';
+            
             printElement.innerHTML = htmlString;
             document.body.appendChild(printElement);
 
+            // "LANGSAM ABER RICHTIG" - Wir warten fette 2,5 Sekunden (2500ms), 
+            // damit der Browser des Handys garantiert alle Bilder dekomprimiert und das Layout gezeichnet hat.
             setTimeout(() => {
                 const opt = {
                     margin:       15,
                     filename:     `${projektName.replace(/[^a-zA-Z0-9]/g, '_') || 'Export'}${summaryOnly ? '_Uebersicht' : ''}.pdf`,
                     image:        { type: 'jpeg', quality: 0.95 },
                     pagebreak:    { mode: ['css', 'legacy'], avoid: '.keep-together' },
-                    html2canvas:  { scale: 1.5, useCORS: true, logging: false, windowWidth: 800 },
+                    html2canvas:  { 
+                        scale: 1.5, 
+                        useCORS: true, 
+                        logging: false, 
+                        windowWidth: 800 
+                    },
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 
-                // Wir erzeugen das PDF und fügen SEITENZAHLEN hinzu!
+                // Wir erzeugen das PDF und fügen SEITENZAHLEN hinzu
                 html2pdf().set(opt).from(printElement).toPdf().get('pdf').then(function (pdf) {
                     var totalPages = pdf.internal.getNumberOfPages();
                     for (var i = 1; i <= totalPages; i++) {
                         pdf.setPage(i);
                         pdf.setFontSize(10);
                         pdf.setTextColor(100);
-                        // Schreibt "Seite X von Y" unten rechts in die Ecke
                         pdf.text('Seite ' + i + ' von ' + totalPages, pdf.internal.pageSize.getWidth() - 20, pdf.internal.pageSize.getHeight() - 8, {align: 'right'});
                     }
                 }).save().then(() => {
@@ -757,7 +771,7 @@
                     pdfBtn.style.pointerEvents = 'auto';
                     alert("Fehler beim Erstellen der PDF. Bitte versuche es erneut.");
                 });
-            }, 300);
+            }, 2500); // 2.5 Sekunden Verzögerung
         }
 
         // Init
