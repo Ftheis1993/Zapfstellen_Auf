@@ -1,19 +1,21 @@
- <title>ProtocolApp Pro</title>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ProtocolApp Pro</title>
     
-    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ProtocolApp">
     
-    <!-- FontAwesome & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
-    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -38,25 +40,25 @@
             color: var(--text-bright);
             font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 0; /* Padding in die Container verlagert */
             letter-spacing: -0.01em;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Haupt-App Container */
-        .app-container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px 15px 100px 15px; }
-
         /* Lade-Overlay (Für PDF Generierung) */
         #pdf-loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); z-index: 9999;
+            background: rgba(0, 0, 0, 0.98); z-index: 99999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         #pdf-loading-overlay.active { opacity: 1; pointer-events: auto; }
-        #pdf-loading-overlay i { font-size: 3em; color: var(--accent-secondary); margin-bottom: 20px; }
-        #pdf-loading-overlay h3 { color: var(--text-bright); margin: 0 0 10px 0; font-size: 1.2em; }
-        #pdf-loading-overlay p { color: var(--text-dim); text-align: center; max-width: 80%; font-size: 0.9em; line-height: 1.4; }
+        #pdf-loading-overlay i { font-size: 3.5em; color: var(--accent-secondary); margin-bottom: 25px; }
+        #pdf-loading-overlay h3 { color: var(--text-bright); margin: 0 0 10px 0; font-size: 1.3em; text-transform: uppercase; letter-spacing: 1px; }
+        #pdf-loading-overlay p { color: var(--text-dim); text-align: center; max-width: 80%; font-size: 0.9em; line-height: 1.5; }
+
+        /* Haupt-App Container */
+        .app-container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px 15px 100px 15px; }
 
         /* Top Bar */
         .brand-header {
@@ -160,17 +162,12 @@
 </head>
 <body>
 
-    <!-- Lade-Bildschirm (Verhindert Interaktion während PDF Generierung) -->
     <div id="pdf-loading-overlay">
         <i class="fas fa-spinner fa-spin"></i>
-        <h3>PDF wird generiert</h3>
-        <p>Bitte warten. Dieser Vorgang kann auf Smartphones einige Sekunden dauern, da die Bilder in das Dokument geladen werden.</p>
+        <h3>PDF wird verarbeitet</h3>
+        <p>Bitte warte einen Moment. Die Bilder werden in Originalqualität in das Dokument geladen.</p>
     </div>
 
-    <!-- Container für den reinen PDF Export -->
-    <div id="print-container" style="display: none; width: 800px; background: #fff; color: #000; padding: 0;"></div>
-
-    <!-- Haupt App -->
     <div class="app-container" id="main-app">
         <header class="brand-header">
             <div class="brand-logo">Protocol<span>App</span></div>
@@ -206,7 +203,6 @@
         </button>
     </div>
 
-    <!-- MODAL POP-UP -->
     <div class="modal-overlay" id="areaModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -248,7 +244,7 @@
         let buildingAreas = [];
         let currentEditingId = null;
 
-        // Korrigierte Entnahmestellen (ohne Projektnummer, mit spezifischer Liste)
+        // Vorgegebene Entnahmestellen
         const defaultSanitaryObjects = [
             "Waschbecken", "Spülbecken", "Ausgussbecken", "WC", 
             "Dusche", "Gerätezapfstelle", "Zapfstelle", "Außenzapfstelle"
@@ -260,12 +256,11 @@
                 projektName: document.getElementById('projektName').value,
                 buildingAreas: buildingAreas
             };
-            localStorage.setItem('protocolAppNeoData3', JSON.stringify(data));
+            localStorage.setItem('protocolAppFinal', JSON.stringify(data));
         }
 
         function loadData() {
-            // Alte Datenformate berücksichtigen
-            const stored = localStorage.getItem('protocolAppNeoData3') || localStorage.getItem('protocolAppNeoData2') || localStorage.getItem('protocolAppNeoData') || localStorage.getItem('protocolAppDataPro'); 
+            const stored = localStorage.getItem('protocolAppFinal') || localStorage.getItem('protocolAppNeoData2'); 
             if(stored) {
                 try {
                     const data = JSON.parse(stored);
@@ -339,7 +334,6 @@
                 let total = area.items.length;
                 let text = total === 0 ? 'Keine Objekte' : `${total} Objekt(e)`;
                 let photoPreview = (area.photos && area.photos.length > 0) ? ` • <span style="color:var(--accent-secondary);">${area.photos.length} Foto(s)</span>` : '';
-                
                 let notesPreview = area.notes ? `<div style="color: var(--text-dim); font-size: 0.8em; margin-top: 6px; border-top: 1px dashed var(--border-hard); padding-top: 6px;">📝 ${area.notes.substring(0, 40)}${area.notes.length > 40 ? '...' : ''}</div>` : '';
 
                 const kachel = document.createElement('div');
@@ -391,7 +385,7 @@
             if(area) { area.notes = val; }
         }
 
-        // --- FOTO LOGIK (Mit aggressiverer Kompression für iOS) ---
+        // --- FOTO LOGIK ---
         function handlePhotoUpload(input) {
             const area = buildingAreas.find(a => a.id === currentEditingId);
             if (input.files && input.files.length > 0) {
@@ -401,7 +395,7 @@
                         const img = new Image();
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
-                            const MAX_SIZE = 800; // Weiter reduziert auf 800px (Garantiert keine Abstürze auf alten iPhones)
+                            const MAX_SIZE = 800; // Kompression
                             let width = img.width;
                             let height = img.height;
 
@@ -415,9 +409,8 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            // Qualität auf 0.6 gesetzt für massiv kleineren RAM-Verbrauch
                             area.photos.push({
-                                data: canvas.toDataURL('image/jpeg', 0.6),
+                                data: canvas.toDataURL('image/jpeg', 0.65), // Optimierte Größe
                                 note: ""
                             });
                             renderPhotos();
@@ -560,17 +553,15 @@
             });
         }
 
-        // --- DER ULTIMATIVE, AUSFALLSICHERE PDF EXPORT ---
-        // Anstatt die Elemente versteckt zu generieren (was Safari blockiert), 
-        // tauschen wir die App kurzzeitig gegen das PDF-Dokument aus, warten 1,5 Sekunden und tauschen zurück.
+        // --- DER ULTIMATIVE, FEHLERFREIE PDF EXPORT ---
         function exportToPDF(summaryOnly) {
-            
             const overlay = document.getElementById('pdf-loading-overlay');
             const mainApp = document.getElementById('main-app');
-            const printContainer = document.getElementById('print-container');
             
-            // 1. Overlay anzeigen & Scroll nach oben (Wichtig für sauberen PDF Startpunkt)
-            window.scrollTo(0,0);
+            // Ganz wichtig für iOS: Immer erst ganz nach oben scrollen!
+            window.scrollTo(0, 0); 
+            
+            // Ladebildschirm aktivieren
             overlay.classList.add('active');
 
             const projektName = document.getElementById('projektName').value.trim() || 'Projekt';
@@ -591,11 +582,8 @@
                 });
             });
 
-            // HTML BAUEN
+            // HTML BAUEN (Ohne Hacks, klares Inline-CSS)
             let htmlString = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; box-sizing: border-box; padding: 20px;">
-                
-                <!-- STARTSEITE / HEADER -->
                 <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">
                     <div style="font-size: 16px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
                         ${summaryOnly ? 'Entnahmestellen-Übersicht' : 'Erfassungsprotokoll'}
@@ -618,10 +606,9 @@
             } else {
                 buildingAreas.forEach((area, index) => {
                     
-                    // JEDER BEREICH BEKOMMT EINE NEUE SEITE 
-                    // Ausnahme: Der allererste Bereich darf direkt auf die Startseite unter den Header
+                    // JEDER BEREICH EINE NEUE SEITE (Die native html2pdf Klasse erzwingt das perfekt!)
                     if(index > 0) {
-                        htmlString += `<div style="page-break-before: always; height: 20px;"></div>`;
+                        htmlString += `<div class="html2pdf__page-break"></div>`;
                     }
 
                     // BEREICH HEADER
@@ -682,13 +669,12 @@
                         htmlString += `
                             <div style="font-size: 14px; margin-bottom: 20px; padding: 15px; background: #fafafa; border: 1px solid #ddd;">
                                 <strong style="text-transform: uppercase; font-size: 12px; color: #555;">Bemerkung:</strong><br>
-                                <div style="margin-top: 6px; line-height: 1.5;">${area.notes.replace(/
-/g, '<br>')}</div>
+                                <div style="margin-top: 6px; line-height: 1.5;">${area.notes.replace(/\n/g, '<br>')}</div>
                             </div>
                         `;
                     }
 
-                    // FOTOS (Nur als Tabelle: Verhindert 100% ein Zerschneiden)
+                    // FOTOS (Immer exakt 2 Stück in einer Tabellenreihe verpackt)
                     if (!summaryOnly && area.photos && area.photos.length > 0) {
                         htmlString += `
                             <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #000; padding-bottom: 5px;">
@@ -700,9 +686,9 @@
                             let photo1 = area.photos[i];
                             let photo2 = area.photos[i+1];
                             
-                            // Absolute PDF Sicherheit: Jedes Paar ist eine Tabellen-Zeile mit der Klasse keep-together
+                            // "keep-together" verhindert zu 100%, dass die Bilder getrennt oder abgeschnitten werden
                             htmlString += `
-                                <table class="keep-together" style="width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed; page-break-inside: avoid;">
+                                <table class="keep-together" style="width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed;">
                                     <tr>
                                         <td style="width: 48%; vertical-align: top; text-align: center; padding-right: 2%;">
                                             <img src="${photo1.data}" style="max-width: 100%; height: auto; max-height: 380px; object-fit: contain; border: 1px solid #000; display: block; margin: 0 auto;">
@@ -723,9 +709,9 @@
                     htmlString += `</div>`; // Ende Bereich
                 });
                 
-                // ZUSAMMENFASSUNG AM ENDE (Neue Seite)
+                // ZUSAMMENFASSUNG AM ENDE (Bekommt auch eine neue Seite)
                 htmlString += `
-                    <div style="page-break-before: always; height: 20px;"></div>
+                    <div class="html2pdf__page-break"></div>
                     <h2 style="font-size: 20px; font-weight: bold; margin: 0 0 20px 0; text-transform: uppercase; background: #000; color: #fff; padding: 15px;">
                         GESAMTABRECHNUNG / STÜCKZAHLEN
                     </h2>
@@ -746,33 +732,39 @@
                     </table>
                 `;
             }
-            htmlString += `</div>`; 
 
-            // 2. DEN BEKANNTEN SAFARI-BUG UMGEHEN: 
-            // Wir tauschen die Haupt-App komplett gegen das Print-Dokument aus, anstatt es zu verstecken.
-            // Der Safari *muss* es jetzt richtig berechnen, weil es das einzige ist, was auf der Seite existiert!
-            printContainer.innerHTML = htmlString;
-            mainApp.style.display = 'none';
-            printContainer.style.display = 'block';
+            // HIER IST DER TRICK GEGEN WEISSE SEITEN: 
+            // Das Element wird ganz normal als HTML Block angehängt und ist sichtbar (unter dem Lade-Overlay)!
+            const printElement = document.createElement('div');
+            printElement.style.width = '800px'; 
+            printElement.style.margin = '0 auto';
+            printElement.style.padding = '30px';
+            printElement.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+            printElement.style.color = '#000';
+            printElement.style.backgroundColor = '#fff';
+            
+            printElement.innerHTML = htmlString;
+            
+            document.body.appendChild(printElement);
+            mainApp.style.display = 'none'; // Versteckt nur das UI, PDF Layout liegt sauber im Hintergrund
 
-            // 3. 1,5 Sekunden warten (Damit der Browser garantiert fertig ist mit dem Zeichnen)
+            // Warten bis der Browser das DOM gezeichnet hat (1.5 Sekunden)
             setTimeout(() => {
                 const opt = {
                     margin:       15,
                     filename:     `${projektName.replace(/[^a-zA-Z0-9]/g, '_') || 'Export'}${summaryOnly ? '_Uebersicht' : ''}.pdf`,
-                    image:        { type: 'jpeg', quality: 0.90 }, // 0.90 ist absolut ausreichend und schützt den Arbeitsspeicher
-                    pagebreak:    { mode: ['css', 'legacy'], avoid: '.keep-together' },
+                    image:        { type: 'jpeg', quality: 0.95 },
+                    pagebreak:    { mode: 'css', avoid: '.keep-together' }, // Dies zwingt das Bildpaar zusammenzubleiben
                     html2canvas:  { 
                         scale: 1.5, 
                         useCORS: true, 
                         logging: false, 
-                        windowWidth: 800 // Zwingt den Canvas auf 800px Breite, egal wie schmal das Handy ist
+                        scrollY: 0 
                     },
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 
-                // 4. PDF Erzeugen & Seitenzahlen generieren
-                html2pdf().set(opt).from(printContainer).toPdf().get('pdf').then(function (pdf) {
+                html2pdf().set(opt).from(printElement).toPdf().get('pdf').then(function (pdf) {
                     var totalPages = pdf.internal.getNumberOfPages();
                     for (var i = 1; i <= totalPages; i++) {
                         pdf.setPage(i);
@@ -781,23 +773,21 @@
                         pdf.text('Seite ' + i + ' von ' + totalPages, pdf.internal.pageSize.getWidth() - 20, pdf.internal.pageSize.getHeight() - 8, {align: 'right'});
                     }
                 }).save().then(() => {
-                    // 5. Nach dem Speichern: App wiederherstellen
-                    printContainer.style.display = 'none';
-                    printContainer.innerHTML = ''; // Speicher wieder freigeben
+                    // Aufräumen und zur App zurückkehren
+                    document.body.removeChild(printElement);
                     mainApp.style.display = 'block';
                     overlay.classList.remove('active');
                 }).catch(err => {
                     console.error("PDF Error: ", err);
-                    printContainer.style.display = 'none';
-                    printContainer.innerHTML = '';
+                    if(document.body.contains(printElement)) document.body.removeChild(printElement);
                     mainApp.style.display = 'block';
                     overlay.classList.remove('active');
-                    alert("Es gab einen Fehler beim Generieren der PDF. Bitte versuche es noch einmal.");
+                    alert("Fehler beim Erstellen der PDF.");
                 });
-            }, 1500); // Exakt 1.5 Sekunden warten.
+            }, 1500); 
         }
 
-        // Init
+        // Init Load
         window.onload = () => {
             loadData();
             initSanitarGrid();
@@ -812,4 +802,4 @@
         }
     </script>
 </body>
-</html>
+</html
