@@ -40,15 +40,15 @@
             color: var(--text-bright);
             font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 0; /* Padding in die Container verlagert */
+            padding: 0; 
             letter-spacing: -0.01em;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Lade-Overlay (Für PDF Generierung) */
+        /* Lade-Overlay (Solid Black - Versteckt die PDF-Generierung) */
         #pdf-loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.98); z-index: 99999;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: #000000; z-index: 999999; /* Absolut im Vordergrund */
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
@@ -157,7 +157,6 @@
         
         .trash-btn { color: var(--text-dim); background: transparent; border: none; font-size: 1.1em; cursor: pointer; padding: 5px; margin-left: 5px; }
         .trash-btn:active { color: var(--accent-primary); }
-
     </style>
 </head>
 <body>
@@ -165,7 +164,7 @@
     <div id="pdf-loading-overlay">
         <i class="fas fa-spinner fa-spin"></i>
         <h3>PDF wird verarbeitet</h3>
-        <p>Bitte warte einen Moment. Die Bilder werden in Originalqualität in das Dokument geladen.</p>
+        <p>Bitte warte einen Moment. Die Bilder werden in Originalqualität auf den Seiten angeordnet.</p>
     </div>
 
     <div class="app-container" id="main-app">
@@ -244,7 +243,7 @@
         let buildingAreas = [];
         let currentEditingId = null;
 
-        // Vorgegebene Entnahmestellen
+        // Die exakte, gewünschte Liste
         const defaultSanitaryObjects = [
             "Waschbecken", "Spülbecken", "Ausgussbecken", "WC", 
             "Dusche", "Gerätezapfstelle", "Zapfstelle", "Außenzapfstelle"
@@ -256,11 +255,11 @@
                 projektName: document.getElementById('projektName').value,
                 buildingAreas: buildingAreas
             };
-            localStorage.setItem('protocolAppFinal', JSON.stringify(data));
+            localStorage.setItem('protocolAppFinalDataV4', JSON.stringify(data));
         }
 
         function loadData() {
-            const stored = localStorage.getItem('protocolAppFinal') || localStorage.getItem('protocolAppNeoData2'); 
+            const stored = localStorage.getItem('protocolAppFinalDataV4') || localStorage.getItem('protocolAppNeoData3') || localStorage.getItem('protocolAppNeoData2'); 
             if(stored) {
                 try {
                     const data = JSON.parse(stored);
@@ -395,7 +394,7 @@
                         const img = new Image();
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
-                            const MAX_SIZE = 800; // Kompression
+                            const MAX_SIZE = 800; // Optimal für Handyspeicher
                             let width = img.width;
                             let height = img.height;
 
@@ -410,7 +409,7 @@
                             ctx.drawImage(img, 0, 0, width, height);
                             
                             area.photos.push({
-                                data: canvas.toDataURL('image/jpeg', 0.65), // Optimierte Größe
+                                data: canvas.toDataURL('image/jpeg', 0.65), 
                                 note: ""
                             });
                             renderPhotos();
@@ -561,7 +560,7 @@
             // Ganz wichtig für iOS: Immer erst ganz nach oben scrollen!
             window.scrollTo(0, 0); 
             
-            // Ladebildschirm aktivieren
+            // Ladebildschirm aktivieren (Dieser verdeckt die Generierung komplett, da er schwarz ist)
             overlay.classList.add('active');
 
             const projektName = document.getElementById('projektName').value.trim() || 'Projekt';
@@ -582,8 +581,10 @@
                 });
             });
 
-            // HTML BAUEN (Ohne Hacks, klares Inline-CSS)
+            // HTML BAUEN
             let htmlString = `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; box-sizing: border-box; padding: 20px;">
+                
                 <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">
                     <div style="font-size: 16px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
                         ${summaryOnly ? 'Entnahmestellen-Übersicht' : 'Erfassungsprotokoll'}
@@ -606,10 +607,8 @@
             } else {
                 buildingAreas.forEach((area, index) => {
                     
-                    // JEDER BEREICH EINE NEUE SEITE (Die native html2pdf Klasse erzwingt das perfekt!)
-                    if(index > 0) {
-                        htmlString += `<div class="html2pdf__page-break"></div>`;
-                    }
+                    // JEDER BEREICH BEKOMMT IMMER EINE NEUE SEITE (Auch der allererste, so ist das Deckblatt isoliert!)
+                    htmlString += `<div style="page-break-before: always; height: 10px;"></div>`;
 
                     // BEREICH HEADER
                     htmlString += `
@@ -674,7 +673,7 @@
                         `;
                     }
 
-                    // FOTOS (Immer exakt 2 Stück in einer Tabellenreihe verpackt)
+                    // FOTOS (Immer exakt 2 Stück pro Zeile, unbeschnitten)
                     if (!summaryOnly && area.photos && area.photos.length > 0) {
                         htmlString += `
                             <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #000; padding-bottom: 5px;">
@@ -686,32 +685,32 @@
                             let photo1 = area.photos[i];
                             let photo2 = area.photos[i+1];
                             
-                            // "keep-together" verhindert zu 100%, dass die Bilder getrennt oder abgeschnitten werden
+                            // "keep-together" verhindert zu 100%, dass die Bilder vom Seitenwechsel durchtrennt werden
                             htmlString += `
-                                <table class="keep-together" style="width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed;">
-                                    <tr>
-                                        <td style="width: 48%; vertical-align: top; text-align: center; padding-right: 2%;">
-                                            <img src="${photo1.data}" style="max-width: 100%; height: auto; max-height: 380px; object-fit: contain; border: 1px solid #000; display: block; margin: 0 auto;">
-                                            ${photo1.note ? `<div style="font-size: 12px; margin-top: 8px; padding: 6px; background: #f5f5f5; border: 1px solid #eee;">${photo1.note}</div>` : ''}
-                                        </td>
-                                        <td style="width: 4%;"></td>
-                                        <td style="width: 48%; vertical-align: top; text-align: center; padding-left: 2%;">
-                                            ${photo2 ? `
-                                                <img src="${photo2.data}" style="max-width: 100%; height: auto; max-height: 380px; object-fit: contain; border: 1px solid #000; display: block; margin: 0 auto;">
-                                                ${photo2.note ? `<div style="font-size: 12px; margin-top: 8px; padding: 6px; background: #f5f5f5; border: 1px solid #eee;">${photo2.note}</div>` : ''}
-                                            ` : ''}
-                                        </td>
-                                    </tr>
-                                </table>
+                                <div class="keep-together" style="width: 100%; margin-bottom: 25px; clear: both; overflow: hidden; page-break-inside: avoid;">
+                                    <div style="display: inline-block; width: 48%; vertical-align: top; margin-right: 3%;">
+                                        <img src="${photo1.data}" style="width: 100%; height: auto; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; display: block;">
+                                        ${photo1.note ? `<div style="padding: 6px; text-align: center; color: #333; font-size: 12px; background: #f9f9f9; border: 1px solid #eee; border-top: none;">${photo1.note}</div>` : ''}
+                                    </div>
                             `;
+
+                            if (photo2) {
+                                htmlString += `
+                                    <div style="display: inline-block; width: 48%; vertical-align: top;">
+                                        <img src="${photo2.data}" style="width: 100%; height: auto; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; display: block;">
+                                        ${photo2.note ? `<div style="padding: 6px; text-align: center; color: #333; font-size: 12px; background: #f9f9f9; border: 1px solid #eee; border-top: none;">${photo2.note}</div>` : ''}
+                                    </div>
+                                `;
+                            }
+                            htmlString += `</div>`;
                         }
                     }
                     htmlString += `</div>`; // Ende Bereich
                 });
                 
-                // ZUSAMMENFASSUNG AM ENDE (Bekommt auch eine neue Seite)
+                // ZUSAMMENFASSUNG AM ENDE (Neue Seite)
                 htmlString += `
-                    <div class="html2pdf__page-break"></div>
+                    <div style="page-break-before: always; height: 20px;"></div>
                     <h2 style="font-size: 20px; font-weight: bold; margin: 0 0 20px 0; text-transform: uppercase; background: #000; color: #fff; padding: 15px;">
                         GESAMTABRECHNUNG / STÜCKZAHLEN
                     </h2>
@@ -732,38 +731,42 @@
                     </table>
                 `;
             }
+            htmlString += `</div>`; 
 
-            // HIER IST DER TRICK GEGEN WEISSE SEITEN: 
-            // Das Element wird ganz normal als HTML Block angehängt und ist sichtbar (unter dem Lade-Overlay)!
+            // HIER IST DER TRICK GEGEN WEISSE SEITEN AUF DEM iPHONE: 
+            // Das Element wird SICHTBAR in den Viewport geladen, aber das komplett schwarze Lade-Overlay liegt darüber!
             const printElement = document.createElement('div');
+            printElement.style.position = 'absolute';
+            printElement.style.top = '0';
+            printElement.style.left = '0'; 
+            printElement.style.zIndex = '100000'; // Unterhalb des Lade-Overlays (welches 999999 hat)
             printElement.style.width = '800px'; 
-            printElement.style.margin = '0 auto';
-            printElement.style.padding = '30px';
-            printElement.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-            printElement.style.color = '#000';
             printElement.style.backgroundColor = '#fff';
+            printElement.style.minHeight = '100vh';
             
             printElement.innerHTML = htmlString;
             
             document.body.appendChild(printElement);
-            mainApp.style.display = 'none'; // Versteckt nur das UI, PDF Layout liegt sauber im Hintergrund
+            mainApp.style.display = 'none';
 
-            // Warten bis der Browser das DOM gezeichnet hat (1.5 Sekunden)
+            // 2.5 Sekunden warten, bis das Handy die Render-Arbeit im Hintergrund wirklich abgeschlossen hat.
             setTimeout(() => {
                 const opt = {
                     margin:       15,
                     filename:     `${projektName.replace(/[^a-zA-Z0-9]/g, '_') || 'Export'}${summaryOnly ? '_Uebersicht' : ''}.pdf`,
                     image:        { type: 'jpeg', quality: 0.95 },
-                    pagebreak:    { mode: 'css', avoid: '.keep-together' }, // Dies zwingt das Bildpaar zusammenzubleiben
+                    pagebreak:    { mode: ['css', 'legacy'], avoid: '.keep-together' }, 
                     html2canvas:  { 
-                        scale: 1.5, 
+                        scale: 2, 
                         useCORS: true, 
                         logging: false, 
-                        scrollY: 0 
+                        scrollY: 0,
+                        windowWidth: 800 
                     },
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 
+                // Wir erzeugen das PDF und fügen SEITENZAHLEN hinzu
                 html2pdf().set(opt).from(printElement).toPdf().get('pdf').then(function (pdf) {
                     var totalPages = pdf.internal.getNumberOfPages();
                     for (var i = 1; i <= totalPages; i++) {
@@ -784,10 +787,10 @@
                     overlay.classList.remove('active');
                     alert("Fehler beim Erstellen der PDF.");
                 });
-            }, 1500); 
+            }, 2500); 
         }
 
-        // Init Load
+        // Init
         window.onload = () => {
             loadData();
             initSanitarGrid();
@@ -802,4 +805,4 @@
         }
     </script>
 </body>
-</html
+</html>
