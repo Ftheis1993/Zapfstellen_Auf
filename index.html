@@ -1,0 +1,815 @@
+ <title>ProtocolApp Pro</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ProtocolApp">
+    
+    <!-- FontAwesome & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #000000;
+            --bg-panel: #0a0a0a;
+            --bg-input: #141414;
+            --accent-primary: #ff003c;
+            --accent-primary-hover: #d40032;
+            --accent-secondary: #00f0ff;
+            --text-bright: #ffffff;
+            --text-dim: #888888;
+            --border-hard: #333333;
+            --radius-sharp: 4px;
+            --transition-fast: all 0.15s ease-out;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-bright);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Haupt-App Container */
+        .app-container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px 15px 100px 15px; }
+
+        /* Lade-Overlay (Für PDF Generierung) */
+        #pdf-loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        #pdf-loading-overlay.active { opacity: 1; pointer-events: auto; }
+        #pdf-loading-overlay i { font-size: 3em; color: var(--accent-secondary); margin-bottom: 20px; }
+        #pdf-loading-overlay h3 { color: var(--text-bright); margin: 0 0 10px 0; font-size: 1.2em; }
+        #pdf-loading-overlay p { color: var(--text-dim); text-align: center; max-width: 80%; font-size: 0.9em; line-height: 1.4; }
+
+        /* Top Bar */
+        .brand-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--border-hard);
+            padding-bottom: 15px; margin-bottom: 25px;
+        }
+        .brand-logo { font-size: 1.4em; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .brand-logo span { color: var(--accent-primary); }
+        .date-badge { background: var(--bg-input); border: 1px solid var(--border-hard); padding: 6px 12px; border-radius: var(--radius-sharp); font-size: 0.85em; font-weight: 600; color: var(--text-dim); }
+
+        /* Projekt Panel */
+        .project-panel {
+            background: var(--bg-panel); border: 1px solid var(--border-hard);
+            border-radius: var(--radius-sharp); padding: 20px; margin-bottom: 30px;
+            box-shadow: 4px 4px 0px rgba(255, 0, 60, 0.1);
+        }
+        .input-block { margin-bottom: 15px; }
+        .input-block:last-child { margin-bottom: 0; }
+        .input-block label { display: block; font-size: 0.75em; font-weight: 800; color: var(--accent-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .input-block input, .input-block textarea {
+            width: 100%; background: var(--bg-base); border: 1px solid var(--border-hard);
+            color: var(--text-bright); padding: 14px; border-radius: var(--radius-sharp);
+            font-family: inherit; font-size: 16px; font-weight: 600; outline: none;
+            transition: var(--transition-fast);
+        }
+        .input-block input:focus, .input-block textarea:focus { border-color: var(--accent-primary); }
+        .input-block textarea { resize: vertical; min-height: 80px; }
+
+        /* Aktionen & Listen */
+        .section-title { font-size: 0.85em; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 30px 0 15px 0; border-bottom: 1px solid var(--border-hard); padding-bottom: 8px; }
+
+        #kachelContainer { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .area-card {
+            background: var(--bg-panel); border: 1px solid var(--border-hard);
+            border-radius: var(--radius-sharp); padding: 20px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: var(--transition-fast);
+        }
+        .area-card:active { border-color: var(--accent-secondary); transform: translateY(2px); }
+        .area-info h3 { margin: 0 0 6px 0; font-size: 1.1em; font-weight: 800; }
+        .area-info p { margin: 0; font-size: 0.85em; color: var(--text-dim); line-height: 1.5; }
+        .area-arrow { color: var(--accent-primary); font-size: 1.2em; }
+
+        /* Buttons */
+        .btn-primary, .btn-outline, .btn-danger, .btn-secondary {
+            width: 100%; padding: 16px; font-size: 1em; font-weight: 800; text-transform: uppercase;
+            border-radius: var(--radius-sharp); cursor: pointer; text-align: center;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            transition: var(--transition-fast); letter-spacing: 0.5px; margin-bottom: 12px;
+        }
+        .btn-primary { background: var(--accent-primary); color: #fff; border: none; }
+        .btn-primary:active { background: var(--accent-primary-hover); transform: scale(0.98); }
+        .btn-secondary { background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-hard); }
+        .btn-secondary:active { border-color: var(--accent-secondary); color: var(--accent-secondary); }
+        .btn-outline { background: transparent; color: var(--text-bright); border: 2px dashed var(--border-hard); }
+        .btn-outline:active { border-color: var(--accent-secondary); color: var(--accent-secondary); }
+        .btn-danger { background: transparent; color: var(--text-dim); border: 1px solid var(--border-hard); margin-top: 30px; font-size: 0.85em; }
+        .btn-danger:active { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: flex; justify-content: center; align-items: flex-end; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: var(--bg-base); border-top: 2px solid var(--accent-primary); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 25px 20px 40px 20px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-header h2 { margin: 0; font-size: 1.2em; font-weight: 800; text-transform: uppercase; color: var(--accent-secondary); }
+        .close-btn { background: transparent; border: none; color: var(--text-dim); font-size: 1.8em; padding: 0; cursor: pointer; }
+        .close-btn:active { color: var(--accent-primary); }
+
+        /* Fotos */
+        .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
+        .photo-item { border: 1px solid var(--border-hard); background: var(--bg-input); border-radius: var(--radius-sharp); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .photo-item img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+        .photo-note { background: transparent; border: none; border-top: 1px solid var(--border-hard); color: var(--text-bright); padding: 10px; font-size: 0.8em; outline: none; width: 100%; text-align: center; }
+        .photo-delete { position: absolute; top: 6px; right: 6px; background: var(--accent-primary); color: #fff; border: none; width: 28px; height: 28px; border-radius: var(--radius-sharp); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* Sanitär Grid & Liste */
+        .item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 25px; }
+        .item-btn { background: var(--bg-input); border: 1px solid var(--border-hard); padding: 12px; color: var(--text-bright); font-size: 0.85em; font-weight: 600; text-align: center; border-radius: var(--radius-sharp); cursor: pointer; }
+        .item-btn:active { border-color: var(--accent-secondary); background: var(--bg-panel); }
+
+        .added-list { list-style: none; padding: 0; margin: 0 0 25px 0; display: flex; flex-direction: column; gap: 10px; }
+        .added-item { background: var(--bg-input); border: 1px solid var(--border-hard); border-radius: var(--radius-sharp); padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .item-name { font-weight: 800; font-size: 0.95em; color: var(--text-bright); flex-grow: 1; min-width: 120px; text-transform: uppercase; }
+        .item-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        
+        .toggle-btn { background: var(--bg-base); border: 1px solid var(--border-hard); color: var(--text-dim); padding: 6px 12px; font-size: 0.75em; font-weight: 800; border-radius: var(--radius-sharp); cursor: pointer; }
+        .toggle-btn.active.kw { border-color: var(--accent-secondary); color: var(--accent-secondary); background: rgba(0, 240, 255, 0.1); }
+        .toggle-btn.active.ww { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(255, 0, 60, 0.1); }
+
+        .number-input { display: flex; align-items: center; gap: 4px; background: var(--bg-base); border: 1px solid var(--border-hard); padding: 4px 8px; border-radius: var(--radius-sharp); }
+        .number-input span { font-size: 0.7em; font-weight: 800; color: var(--text-dim); }
+        .number-input input { background: transparent; border: none; color: var(--text-bright); width: 30px; text-align: center; font-size: 0.9em; font-weight: 800; outline: none; padding: 0; }
+        
+        .trash-btn { color: var(--text-dim); background: transparent; border: none; font-size: 1.1em; cursor: pointer; padding: 5px; margin-left: 5px; }
+        .trash-btn:active { color: var(--accent-primary); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Lade-Bildschirm (Verhindert Interaktion während PDF Generierung) -->
+    <div id="pdf-loading-overlay">
+        <i class="fas fa-spinner fa-spin"></i>
+        <h3>PDF wird generiert</h3>
+        <p>Bitte warten. Dieser Vorgang kann auf Smartphones einige Sekunden dauern, da die Bilder in das Dokument geladen werden.</p>
+    </div>
+
+    <!-- Container für den reinen PDF Export -->
+    <div id="print-container" style="display: none; width: 800px; background: #fff; color: #000; padding: 0;"></div>
+
+    <!-- Haupt App -->
+    <div class="app-container" id="main-app">
+        <header class="brand-header">
+            <div class="brand-logo">Protocol<span>App</span></div>
+            <div class="date-badge" id="currentDate">--.--.----</div>
+        </header>
+
+        <div class="project-panel">
+            <div class="input-block">
+                <label>Projektname / Bauvorhaben</label>
+                <input type="text" id="projektName" placeholder="Bezeichnung eingeben..." oninput="saveData()">
+            </div>
+        </div>
+
+        <div class="section-title">Erfasste Bereiche</div>
+        <div id="kachelContainer"></div>
+
+        <button class="btn-outline" onclick="createNewArea()">
+            <i class="fas fa-plus"></i> Neuen Bereich hinzufügen
+        </button>
+
+        <div class="section-title">PDF Export</div>
+        
+        <button class="btn-primary" onclick="exportToPDF(false)">
+            <i class="fas fa-file-pdf"></i> Komplettes Protokoll (Mit Fotos)
+        </button>
+        
+        <button class="btn-secondary" onclick="exportToPDF(true)">
+            <i class="fas fa-list"></i> Nur Entnahmestellen (Übersicht)
+        </button>
+        
+        <button class="btn-danger" onclick="resetApp()">
+            <i class="fas fa-skull"></i> System-Reset (Alle Daten löschen)
+        </button>
+    </div>
+
+    <!-- MODAL POP-UP -->
+    <div class="modal-overlay" id="areaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Bereichs Aufnahme</h2>
+                <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="input-block">
+                <label>Bereich</label>
+                <input type="text" id="modalAreaName" oninput="updateCurrentAreaName(this.value)">
+            </div>
+
+            <div class="input-block">
+                <label>Bemerkung</label>
+                <textarea id="modalAreaNotes" placeholder="Zustand, Mängel festhalten..." oninput="updateCurrentAreaNotes(this.value)"></textarea>
+            </div>
+
+            <div class="section-title">Fotos & Dokumentation</div>
+            <button class="btn-outline" style="border-style: solid; background: var(--bg-input);" onclick="document.getElementById('cameraInput').click()">
+                <i class="fas fa-camera"></i> Foto aufnehmen / Galerie
+            </button>
+            <input type="file" id="cameraInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(this)" multiple>
+            <div class="photo-grid" id="photoGrid"></div>
+
+            <div class="section-title">Entnahmestelle Hinzufügen</div>
+            <div class="item-grid" id="sanitarGrid"></div>
+
+            <div class="section-title">Erfasste Objekte</div>
+            <ul class="added-list" id="addedItemsList"></ul>
+
+            <button class="btn-primary" onclick="closeModal()">Sichern & Schließen</button>
+            <button class="btn-danger" style="margin-top: 15px; border: none;" onclick="deleteCurrentArea()">Diesen Bereich entfernen</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        let buildingAreas = [];
+        let currentEditingId = null;
+
+        // Korrigierte Entnahmestellen (ohne Projektnummer, mit spezifischer Liste)
+        const defaultSanitaryObjects = [
+            "Waschbecken", "Spülbecken", "Ausgussbecken", "WC", 
+            "Dusche", "Gerätezapfstelle", "Zapfstelle", "Außenzapfstelle"
+        ];
+
+        // --- SPEICHER LOGIK ---
+        function saveData() {
+            const data = {
+                projektName: document.getElementById('projektName').value,
+                buildingAreas: buildingAreas
+            };
+            localStorage.setItem('protocolAppNeoData3', JSON.stringify(data));
+        }
+
+        function loadData() {
+            // Alte Datenformate berücksichtigen
+            const stored = localStorage.getItem('protocolAppNeoData3') || localStorage.getItem('protocolAppNeoData2') || localStorage.getItem('protocolAppNeoData') || localStorage.getItem('protocolAppDataPro'); 
+            if(stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    document.getElementById('projektName').value = data.projektName || '';
+                    buildingAreas = data.buildingAreas || [];
+                    
+                    buildingAreas.forEach(area => {
+                        if (area.photos) {
+                            area.photos = area.photos.map(p => {
+                                if (typeof p === 'string') return { data: p, note: "" };
+                                return p;
+                            });
+                        }
+                    });
+
+                    renderAreas();
+                } catch(e) { console.error("Daten konnten nicht geladen werden", e); }
+            }
+        }
+
+        function resetApp() {
+            if(confirm("KRITISCHER VORGANG: Alle Daten und Bilder werden permanent gelöscht. Fortfahren?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // --- UI INITIALISIERUNG ---
+        function initSanitarGrid() {
+            const grid = document.getElementById('sanitarGrid');
+            grid.innerHTML = '';
+            defaultSanitaryObjects.forEach(obj => {
+                const btn = document.createElement('div');
+                btn.className = 'item-btn';
+                btn.textContent = obj;
+                btn.onclick = () => addSanitaryObject(obj);
+                grid.appendChild(btn);
+            });
+            const customBtn = document.createElement('div');
+            customBtn.className = 'item-btn';
+            customBtn.style.borderStyle = "dashed";
+            customBtn.innerHTML = `+ Eigene Eingabe...`;
+            customBtn.onclick = createCustomObject;
+            grid.appendChild(customBtn);
+        }
+
+        function createCustomObject() {
+            const name = prompt("Name der Entnahmestelle:");
+            if (name && name.trim() !== "") addSanitaryObject(name.trim());
+        }
+
+        function createNewArea() {
+            const newId = Date.now().toString();
+            buildingAreas.push({
+                id: newId,
+                name: "Unbenannter Bereich",
+                notes: "",
+                items: [],
+                photos: []
+            });
+            saveData();
+            renderAreas();
+            openModal(newId);
+        }
+
+        function renderAreas() {
+            const container = document.getElementById('kachelContainer');
+            container.innerHTML = '';
+            
+            buildingAreas.forEach(area => {
+                let total = area.items.length;
+                let text = total === 0 ? 'Keine Objekte' : `${total} Objekt(e)`;
+                let photoPreview = (area.photos && area.photos.length > 0) ? ` • <span style="color:var(--accent-secondary);">${area.photos.length} Foto(s)</span>` : '';
+                
+                let notesPreview = area.notes ? `<div style="color: var(--text-dim); font-size: 0.8em; margin-top: 6px; border-top: 1px dashed var(--border-hard); padding-top: 6px;">📝 ${area.notes.substring(0, 40)}${area.notes.length > 40 ? '...' : ''}</div>` : '';
+
+                const kachel = document.createElement('div');
+                kachel.className = 'area-card';
+                kachel.onclick = () => openModal(area.id);
+                kachel.innerHTML = `
+                    <div class="area-info" style="flex-grow: 1; padding-right: 15px;">
+                        <h3>${area.name}</h3>
+                        <p>${text}${photoPreview}</p>
+                        ${notesPreview}
+                    </div>
+                    <div class="area-arrow"><i class="fas fa-chevron-right"></i></div>
+                `;
+                container.appendChild(kachel);
+            });
+        }
+
+        function openModal(areaId) {
+            currentEditingId = areaId;
+            const area = buildingAreas.find(a => a.id === areaId);
+            document.getElementById('modalAreaName').value = area.name === "Unbenannter Bereich" ? "" : area.name;
+            document.getElementById('modalAreaNotes').value = area.notes;
+            
+            if (!area.photos) area.photos = [];
+
+            renderPhotos();
+            renderAddedItemsList();
+            document.getElementById('areaModal').classList.add('active');
+        }
+
+        function closeModal() {
+            const nameInput = document.getElementById('modalAreaName').value.trim();
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (area && nameInput === "") {
+                area.name = "Bereich (Ohne Name)";
+            }
+            saveData();
+            document.getElementById('areaModal').classList.remove('active');
+            renderAreas();
+        }
+
+        function updateCurrentAreaName(val) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if(area) { area.name = val || "Unbenannter Bereich"; }
+        }
+
+        function updateCurrentAreaNotes(val) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if(area) { area.notes = val; }
+        }
+
+        // --- FOTO LOGIK (Mit aggressiverer Kompression für iOS) ---
+        function handlePhotoUpload(input) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (input.files && input.files.length > 0) {
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const MAX_SIZE = 800; // Weiter reduziert auf 800px (Garantiert keine Abstürze auf alten iPhones)
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                            } else {
+                                if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Qualität auf 0.6 gesetzt für massiv kleineren RAM-Verbrauch
+                            area.photos.push({
+                                data: canvas.toDataURL('image/jpeg', 0.6),
+                                note: ""
+                            });
+                            renderPhotos();
+                        }
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            input.value = ""; 
+        }
+
+        function updatePhotoNote(index, val) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (area && area.photos[index]) {
+                area.photos[index].note = val;
+            }
+        }
+
+        function renderPhotos() {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            const grid = document.getElementById('photoGrid');
+            grid.innerHTML = '';
+            if (area && area.photos) {
+                area.photos.forEach((photo, index) => {
+                    grid.innerHTML += `
+                        <div class="photo-item">
+                            <button class="photo-delete" onclick="deletePhoto(${index})"><i class="fas fa-times"></i></button>
+                            <img src="${photo.data}" alt="Doku">
+                            <input type="text" class="photo-note" placeholder="Bemerkung..." value="${photo.note || ''}" oninput="updatePhotoNote(${index}, this.value)">
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function deletePhoto(index) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (area && area.photos) {
+                area.photos.splice(index, 1);
+                renderPhotos();
+            }
+        }
+
+        // --- OBJEKT LOGIK ---
+        function addSanitaryObject(objName) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            const newItem = {
+                id: Date.now().toString(),
+                name: objName,
+                kw: false,
+                ww: false
+            };
+            if (objName === "Waschrinne") {
+                newItem.zapfstellen = 2;
+                newItem.kwCount = 2;
+                newItem.wwCount = 2;
+            }
+            area.items.push(newItem);
+            renderAddedItemsList();
+        }
+
+        function removeSanitaryObject(index) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            area.items.splice(index, 1);
+            renderAddedItemsList();
+        }
+
+        function toggleWater(index, type) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (area && area.items[index]) {
+                area.items[index][type] = !area.items[index][type];
+                renderAddedItemsList();
+            }
+        }
+
+        function updateZapfstellen(index, value) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (area && area.items[index]) {
+                let val = parseInt(value);
+                area.items[index].zapfstellen = isNaN(val) || val < 1 ? 1 : val;
+            }
+        }
+
+        function updateWaschrinneWater(index, type, value) {
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            if (area && area.items[index]) {
+                let val = parseInt(value);
+                let safeVal = isNaN(val) || val < 0 ? 0 : val;
+                if (type === 'kw') area.items[index].kwCount = safeVal;
+                if (type === 'ww') area.items[index].wwCount = safeVal;
+            }
+        }
+
+        function deleteCurrentArea() {
+            if (confirm('Bereich komplett und unwiderruflich löschen?')) {
+                buildingAreas = buildingAreas.filter(a => a.id !== currentEditingId);
+                saveData();
+                document.getElementById('areaModal').classList.remove('active');
+                renderAreas();
+            }
+        }
+
+        function renderAddedItemsList() {
+            const list = document.getElementById('addedItemsList');
+            list.innerHTML = '';
+            const area = buildingAreas.find(a => a.id === currentEditingId);
+            
+            if (area.items.length === 0) {
+                list.innerHTML = '<li class="added-item" style="color:var(--text-dim); justify-content:center; border-style: dashed; font-weight: normal;">Keine Einträge vorhanden</li>';
+                return;
+            }
+
+            area.items.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'added-item';
+
+                let controlsHTML = '';
+                if (item.name === "Waschrinne") {
+                    controlsHTML = `
+                        <div class="number-input"><span>Z</span><input type="number" min="1" value="${item.zapfstellen || 2}" onchange="updateZapfstellen(${index}, this.value)"></div>
+                        <div class="number-input" style="border-color: var(--accent-secondary);"><span>KW</span><input type="number" min="0" value="${item.kwCount !== undefined ? item.kwCount : 2}" onchange="updateWaschrinneWater(${index}, 'kw', this.value)"></div>
+                        <div class="number-input" style="border-color: var(--accent-primary);"><span>WW</span><input type="number" min="0" value="${item.wwCount !== undefined ? item.wwCount : 2}" onchange="updateWaschrinneWater(${index}, 'ww', this.value)"></div>
+                    `;
+                } else {
+                    controlsHTML = `
+                        <button class="toggle-btn kw ${item.kw ? 'active' : ''}" onclick="toggleWater(${index}, 'kw')">KW</button>
+                        <button class="toggle-btn ww ${item.ww ? 'active' : ''}" onclick="toggleWater(${index}, 'ww')">WW</button>
+                    `;
+                }
+
+                li.innerHTML = `
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-controls">
+                        ${controlsHTML}
+                        <button class="trash-btn" onclick="removeSanitaryObject(${index})"><i class="fas fa-trash-can"></i></button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // --- DER ULTIMATIVE, AUSFALLSICHERE PDF EXPORT ---
+        // Anstatt die Elemente versteckt zu generieren (was Safari blockiert), 
+        // tauschen wir die App kurzzeitig gegen das PDF-Dokument aus, warten 1,5 Sekunden und tauschen zurück.
+        function exportToPDF(summaryOnly) {
+            
+            const overlay = document.getElementById('pdf-loading-overlay');
+            const mainApp = document.getElementById('main-app');
+            const printContainer = document.getElementById('print-container');
+            
+            // 1. Overlay anzeigen & Scroll nach oben (Wichtig für sauberen PDF Startpunkt)
+            window.scrollTo(0,0);
+            overlay.classList.add('active');
+
+            const projektName = document.getElementById('projektName').value.trim() || 'Projekt';
+            const datum = document.getElementById('currentDate').textContent;
+
+            // Zähle Zusammenfassung
+            let totalObjects = 0; let totalKW = 0; let totalWW = 0;
+            buildingAreas.forEach(area => {
+                totalObjects += area.items.length;
+                area.items.forEach(item => {
+                    if (item.name === "Waschrinne") {
+                        totalKW += (item.kwCount !== undefined ? item.kwCount : 2);
+                        totalWW += (item.wwCount !== undefined ? item.wwCount : 2);
+                    } else {
+                        if (item.kw) totalKW++;
+                        if (item.ww) totalWW++;
+                    }
+                });
+            });
+
+            // HTML BAUEN
+            let htmlString = `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; box-sizing: border-box; padding: 20px;">
+                
+                <!-- STARTSEITE / HEADER -->
+                <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">
+                    <div style="font-size: 16px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+                        ${summaryOnly ? 'Entnahmestellen-Übersicht' : 'Erfassungsprotokoll'}
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="vertical-align: bottom;">
+                                <h1 style="margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase;">${projektName}</h1>
+                            </td>
+                            <td style="text-align: right; vertical-align: bottom; font-size: 16px;">
+                                Datum: <strong>${datum}</strong>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+
+            if (buildingAreas.length === 0) {
+                htmlString += `<div style="text-align: center; padding: 50px; font-style: italic; color: #777;">Keine Daten erfasst.</div>`;
+            } else {
+                buildingAreas.forEach((area, index) => {
+                    
+                    // JEDER BEREICH BEKOMMT EINE NEUE SEITE 
+                    // Ausnahme: Der allererste Bereich darf direkt auf die Startseite unter den Header
+                    if(index > 0) {
+                        htmlString += `<div style="page-break-before: always; height: 20px;"></div>`;
+                    }
+
+                    // BEREICH HEADER
+                    htmlString += `
+                        <div style="margin-bottom: 25px;">
+                            <h2 style="font-size: 20px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase; background: #f0f0f0; border-left: 5px solid #000; padding: 10px 15px;">
+                                ${area.name}
+                            </h2>
+                    `;
+
+                    // TABELLE ENTNAHMESTELLEN
+                    if (area.items.length > 0) {
+                        htmlString += `
+                            <table style="width: 100%; border-collapse: collapse; font-size: 15px; margin-bottom: 15px; border: 1px solid #ddd;">
+                                <thead>
+                                    <tr style="background-color: #fafafa; border-bottom: 2px solid #000;">
+                                        <th style="padding: 10px 15px; text-align: left; width: 70%; text-transform: uppercase; font-size: 13px;">Entnahmestelle</th>
+                                        <th style="padding: 10px 15px; text-align: right; width: 30%; text-transform: uppercase; font-size: 13px;">Anschluss</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+                        area.items.forEach((item, idx) => {
+                            const rowBg = idx % 2 === 0 ? '#ffffff' : '#fcfcfc';
+                            let detailInfo = ''; let waterBadgesHTML = '';
+
+                            if (item.name === "Waschrinne") {
+                                detailInfo = ` <span style="font-size: 12px; color:#666;">(${item.zapfstellen || 2} Zapfstellen)</span>`;
+                                let kwMenge = item.kwCount !== undefined ? item.kwCount : 2;
+                                let wwMenge = item.wwCount !== undefined ? item.wwCount : 2;
+
+                                let badges = [];
+                                if (kwMenge > 0) badges.push(`<strong>${kwMenge}x KW</strong>`);
+                                if (wwMenge > 0) badges.push(`<strong>${wwMenge}x WW</strong>`);
+                                waterBadgesHTML = badges.length > 0 ? badges.join(' | ') : `-`;
+                            } else {
+                                let badges = [];
+                                if (item.kw) badges.push(`<strong>KW</strong>`);
+                                if (item.ww) badges.push(`<strong>WW</strong>`);
+                                waterBadgesHTML = badges.length > 0 ? badges.join(' | ') : `-`;
+                            }
+
+                            htmlString += `
+                                <tr style="background-color: ${rowBg}; border-bottom: 1px solid #eee;">
+                                    <td style="padding: 10px 15px; border-right: 1px solid #eee; font-weight: bold;">${item.name}${detailInfo}</td>
+                                    <td style="padding: 10px 15px; text-align: right;">${waterBadgesHTML}</td>
+                                </tr>
+                            `;
+                        });
+                        htmlString += `</tbody></table>`;
+                    } else {
+                        htmlString += `<div style="font-size: 14px; color: #666; font-style: italic; margin-bottom: 15px; padding-left: 15px;">Keine Entnahmestellen.</div>`;
+                    }
+
+                    // BEMERKUNG 
+                    if (!summaryOnly && area.notes && area.notes.trim() !== '') {
+                        htmlString += `
+                            <div style="font-size: 14px; margin-bottom: 20px; padding: 15px; background: #fafafa; border: 1px solid #ddd;">
+                                <strong style="text-transform: uppercase; font-size: 12px; color: #555;">Bemerkung:</strong><br>
+                                <div style="margin-top: 6px; line-height: 1.5;">${area.notes.replace(/
+/g, '<br>')}</div>
+                            </div>
+                        `;
+                    }
+
+                    // FOTOS (Nur als Tabelle: Verhindert 100% ein Zerschneiden)
+                    if (!summaryOnly && area.photos && area.photos.length > 0) {
+                        htmlString += `
+                            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #000; padding-bottom: 5px;">
+                                Fotodokumentation
+                            </div>
+                        `;
+                        
+                        for (let i = 0; i < area.photos.length; i += 2) {
+                            let photo1 = area.photos[i];
+                            let photo2 = area.photos[i+1];
+                            
+                            // Absolute PDF Sicherheit: Jedes Paar ist eine Tabellen-Zeile mit der Klasse keep-together
+                            htmlString += `
+                                <table class="keep-together" style="width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed; page-break-inside: avoid;">
+                                    <tr>
+                                        <td style="width: 48%; vertical-align: top; text-align: center; padding-right: 2%;">
+                                            <img src="${photo1.data}" style="max-width: 100%; height: auto; max-height: 380px; object-fit: contain; border: 1px solid #000; display: block; margin: 0 auto;">
+                                            ${photo1.note ? `<div style="font-size: 12px; margin-top: 8px; padding: 6px; background: #f5f5f5; border: 1px solid #eee;">${photo1.note}</div>` : ''}
+                                        </td>
+                                        <td style="width: 4%;"></td>
+                                        <td style="width: 48%; vertical-align: top; text-align: center; padding-left: 2%;">
+                                            ${photo2 ? `
+                                                <img src="${photo2.data}" style="max-width: 100%; height: auto; max-height: 380px; object-fit: contain; border: 1px solid #000; display: block; margin: 0 auto;">
+                                                ${photo2.note ? `<div style="font-size: 12px; margin-top: 8px; padding: 6px; background: #f5f5f5; border: 1px solid #eee;">${photo2.note}</div>` : ''}
+                                            ` : ''}
+                                        </td>
+                                    </tr>
+                                </table>
+                            `;
+                        }
+                    }
+                    htmlString += `</div>`; // Ende Bereich
+                });
+                
+                // ZUSAMMENFASSUNG AM ENDE (Neue Seite)
+                htmlString += `
+                    <div style="page-break-before: always; height: 20px;"></div>
+                    <h2 style="font-size: 20px; font-weight: bold; margin: 0 0 20px 0; text-transform: uppercase; background: #000; color: #fff; padding: 15px;">
+                        GESAMTABRECHNUNG / STÜCKZAHLEN
+                    </h2>
+                    
+                    <table style="width: 100%; border-collapse: collapse; font-size: 16px; border: 2px solid #000;">
+                        <tr style="background: #fafafa; border-bottom: 1px solid #ddd;">
+                            <td style="padding: 15px; font-weight: bold; width: 70%;">ENTNAHMESTELLEN GESAMT</td>
+                            <td style="padding: 15px; text-align: right; font-weight: bold; font-size: 20px;">${totalObjects}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 15px; font-weight: bold; color: #005bb5;">KALTWASSER-ANSCHLÜSSE (KW)</td>
+                            <td style="padding: 15px; text-align: right; font-weight: bold; color: #005bb5; font-size: 20px;">${totalKW}x</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px; font-weight: bold; color: #d64000;">WARMWASSER-ANSCHLÜSSE (WW)</td>
+                            <td style="padding: 15px; text-align: right; font-weight: bold; color: #d64000; font-size: 20px;">${totalWW}x</td>
+                        </tr>
+                    </table>
+                `;
+            }
+            htmlString += `</div>`; 
+
+            // 2. DEN BEKANNTEN SAFARI-BUG UMGEHEN: 
+            // Wir tauschen die Haupt-App komplett gegen das Print-Dokument aus, anstatt es zu verstecken.
+            // Der Safari *muss* es jetzt richtig berechnen, weil es das einzige ist, was auf der Seite existiert!
+            printContainer.innerHTML = htmlString;
+            mainApp.style.display = 'none';
+            printContainer.style.display = 'block';
+
+            // 3. 1,5 Sekunden warten (Damit der Browser garantiert fertig ist mit dem Zeichnen)
+            setTimeout(() => {
+                const opt = {
+                    margin:       15,
+                    filename:     `${projektName.replace(/[^a-zA-Z0-9]/g, '_') || 'Export'}${summaryOnly ? '_Uebersicht' : ''}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.90 }, // 0.90 ist absolut ausreichend und schützt den Arbeitsspeicher
+                    pagebreak:    { mode: ['css', 'legacy'], avoid: '.keep-together' },
+                    html2canvas:  { 
+                        scale: 1.5, 
+                        useCORS: true, 
+                        logging: false, 
+                        windowWidth: 800 // Zwingt den Canvas auf 800px Breite, egal wie schmal das Handy ist
+                    },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // 4. PDF Erzeugen & Seitenzahlen generieren
+                html2pdf().set(opt).from(printContainer).toPdf().get('pdf').then(function (pdf) {
+                    var totalPages = pdf.internal.getNumberOfPages();
+                    for (var i = 1; i <= totalPages; i++) {
+                        pdf.setPage(i);
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(100);
+                        pdf.text('Seite ' + i + ' von ' + totalPages, pdf.internal.pageSize.getWidth() - 20, pdf.internal.pageSize.getHeight() - 8, {align: 'right'});
+                    }
+                }).save().then(() => {
+                    // 5. Nach dem Speichern: App wiederherstellen
+                    printContainer.style.display = 'none';
+                    printContainer.innerHTML = ''; // Speicher wieder freigeben
+                    mainApp.style.display = 'block';
+                    overlay.classList.remove('active');
+                }).catch(err => {
+                    console.error("PDF Error: ", err);
+                    printContainer.style.display = 'none';
+                    printContainer.innerHTML = '';
+                    mainApp.style.display = 'block';
+                    overlay.classList.remove('active');
+                    alert("Es gab einen Fehler beim Generieren der PDF. Bitte versuche es noch einmal.");
+                });
+            }, 1500); // Exakt 1.5 Sekunden warten.
+        }
+
+        // Init
+        window.onload = () => {
+            loadData();
+            initSanitarGrid();
+        };
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('PWA SW registriert.'))
+                    .catch(err => console.error('SW Error:', err));
+            });
+        }
+    </script>
+</body>
+</html>
