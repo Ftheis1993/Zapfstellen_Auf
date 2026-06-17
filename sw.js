@@ -1,4 +1,4 @@
-const CACHE_NAME = 'protocolapp-cache.vd4434';
+const CACHE_NAME = 'protocolapp-cache.vd44d34';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
