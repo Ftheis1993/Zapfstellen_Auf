@@ -239,7 +239,6 @@
             "Dusche", "Gerätezapfstelle", "Zapfstelle", "Außenzapfstelle"
         ];
 
-        // --- SPEICHER LOGIK ---
         function saveData() {
             const data = {
                 projektName: document.getElementById('projektName').value,
@@ -249,7 +248,6 @@
         }
 
         function loadData() {
-            // Abwärtskompatibilität gewahrt, bereinigt alten Zustand
             const stored = localStorage.getItem('protocolApp_data_v4') || localStorage.getItem('protocolAppFinalDataV4') || localStorage.getItem('protocolAppNeoData3'); 
             if(stored) {
                 try {
@@ -276,7 +274,6 @@
             }
         }
 
-        // --- UI INITIALISIERUNG ---
         function initSanitarGrid() {
             const grid = document.getElementById('sanitarGrid');
             grid.innerHTML = '';
@@ -302,13 +299,7 @@
 
         function createNewArea() {
             const newId = Date.now().toString();
-            buildingAreas.push({
-                id: newId,
-                name: "Unbenannter Bereich",
-                notes: "",
-                items: [],
-                photos: []
-            });
+            buildingAreas.push({ id: newId, name: "Unbenannter Bereich", notes: "", items: [], photos: [] });
             saveData();
             renderAreas();
             openModal(newId);
@@ -344,7 +335,6 @@
             const area = buildingAreas.find(a => a.id === areaId);
             document.getElementById('modalAreaName').value = area.name === "Unbenannter Bereich" ? "" : area.name;
             document.getElementById('modalAreaNotes').value = area.notes;
-            
             if (!area.photos) area.photos = [];
 
             renderPhotos();
@@ -355,9 +345,7 @@
         function closeModal() {
             const nameInput = document.getElementById('modalAreaName').value.trim();
             const area = buildingAreas.find(a => a.id === currentEditingId);
-            if (area && nameInput === "") {
-                area.name = "Bereich (Ohne Name)";
-            }
+            if (area && nameInput === "") area.name = "Bereich (Ohne Name)";
             saveData();
             document.getElementById('areaModal').classList.remove('active');
             renderAreas();
@@ -373,7 +361,6 @@
             if(area) { area.notes = val; saveData(); }
         }
 
-        // --- OPTIMIERTE FOTO-LOGIK (Verhindert asynchrone Rerender-Races) ---
         function handlePhotoUpload(input) {
             const area = buildingAreas.find(a => a.id === currentEditingId);
             if (!input.files || input.files.length === 0) return;
@@ -401,10 +388,7 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        area.photos.push({
-                            data: canvas.toDataURL('image/jpeg', 0.7), 
-                            note: ""
-                        });
+                        area.photos.push({ data: canvas.toDataURL('image/jpeg', 0.7), note: "" });
 
                         processedCount++;
                         if (processedCount === files.length) {
@@ -440,7 +424,6 @@
                         <img src="${photo.data}" alt="Doku">
                         <input type="text" class="photo-note" placeholder="Bemerkung..." value="${photo.note || ''}">
                     `;
-                    // Event-Listener direkt binden, verhindert Fokusverlust beim Tippen durch kompletten innerHTML-Tausch
                     item.querySelector('input').oninput = (e) => updatePhotoNote(index, e.target.value);
                     grid.appendChild(item);
                 });
@@ -456,15 +439,9 @@
             }
         }
 
-        // --- OBJEKT LOGIK ---
         function addSanitaryObject(objName) {
             const area = buildingAreas.find(a => a.id === currentEditingId);
-            const newItem = {
-                id: Date.now().toString(),
-                name: objName,
-                kw: false,
-                ww: false
-            };
+            const newItem = { id: Date.now().toString(), name: objName, kw: false, ww: false };
             if (objName === "Waschrinne") {
                 newItem.zapfstellen = 2;
                 newItem.kwCount = 2;
@@ -482,7 +459,6 @@
             renderAddedItemsList();
         }
 
-        // Fix: Sofortiges Speichern bei Status-Toggles
         function toggleWater(index, type) {
             const area = buildingAreas.find(a => a.id === currentEditingId);
             if (area && area.items[index]) {
@@ -560,7 +536,7 @@
             });
         }
 
-        // --- ROBUSTER PDF EXPORT (Fixes Chaining & Page Breaks) ---
+        // --- DER FIX FÜR DAS LEERE PDF ---
         function exportToPDF(summaryOnly) {
             const overlay = document.getElementById('pdf-loading-overlay');
             const mainApp = document.getElementById('main-app');
@@ -585,8 +561,9 @@
                 });
             });
 
+            // WICHTIG: Explicit background-color: #ffffff auf dem äußersten Container erzwingen!
             let htmlString = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; box-sizing: border-box; padding: 20px;">
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #ffffff; color: #000; box-sizing: border-box; padding: 20px; width: 800px; min-height: 100vh;">
                 <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">
                     <div style="font-size: 16px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
                         ${summaryOnly ? 'Entnahmestellen-Übersicht' : 'Erfassungsprotokoll'}
@@ -608,7 +585,6 @@
                 htmlString += `<div style="text-align: center; padding: 50px; font-style: italic; color: #777;">Keine Daten erfasst.</div>`;
             } else {
                 buildingAreas.forEach((area, index) => {
-                    // Fix: Verhindert Leerseite am Anfang, bricht sauber ab dem 2. Element um
                     if (index > 0) {
                         htmlString += `<div style="page-break-before: always; height: 1px;"></div>`;
                     }
@@ -667,8 +643,7 @@
                         htmlString += `
                             <div style="font-size: 14px; margin-bottom: 20px; padding: 15px; background: #fafafa; border: 1px solid #ddd;">
                                 <strong style="text-transform: uppercase; font-size: 12px; color: #555;">Bemerkung:</strong><br>
-                                <div style="margin-top: 6px; line-height: 1.5;">${area.notes.replace(/
-/g, '<br>')}</div>
+                                <div style="margin-top: 6px; line-height: 1.5;">${area.notes.replace(/\n/g, '<br>')}</div>
                             </div>
                         `;
                     }
@@ -731,18 +706,20 @@
             htmlString += `</div>`; 
 
             const printElement = document.createElement('div');
-            printElement.style.position = 'absolute';
-            printElement.style.top = '0';
-            printElement.style.left = '0'; 
-            printElement.style.zIndex = '100000';
+            
+            // WICHTIG: Kein position: absolute mehr! Das hat die Höhe von document.body auf 0px gesetzt.
+            // Die Render-Engine (html2canvas) hat dann wegen der 0px Höhe nur eine leere weiße Box "fotografiert".
+            printElement.style.position = 'relative'; 
             printElement.style.width = '800px'; 
-            printElement.style.backgroundColor = '#fff';
-            printElement.style.minHeight = '100vh';
+            printElement.style.backgroundColor = '#ffffff'; // Explizit weiß setzen, damit es nicht transparent wird
+            printElement.style.zIndex = '100000';
+            
             printElement.innerHTML = htmlString;
             
             document.body.appendChild(printElement);
             mainApp.style.display = 'none';
 
+            // Kurze Pause, damit der Browser die Bilder aus dem Base64-String ins Layout rendern kann
             setTimeout(() => {
                 const opt = {
                     margin:       15,
@@ -759,29 +736,37 @@
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 
-                // Fix: Korrektes Chaining des internen html2pdf-Workers, um nativen Promise-Abbruch zu verhindern
-                const worker = html2pdf().set(opt).from(printElement).toPdf().get('pdf').then(function (pdf) {
-                    const totalPages = pdf.internal.getNumberOfPages();
-                    for (let i = 1; i <= totalPages; i++) {
-                        pdf.setPage(i);
-                        pdf.setFontSize(10);
-                        pdf.setTextColor(100);
-                        pdf.text('Seite ' + i + ' von ' + totalPages, pdf.internal.pageSize.getWidth() - 20, pdf.internal.pageSize.getHeight() - 8, {align: 'right'});
-                    }
-                });
-
-                worker.save().then(() => {
-                    document.body.removeChild(printElement);
-                    mainApp.style.display = 'block';
-                    overlay.classList.remove('active');
-                }).catch(err => {
-                    console.error("PDF Error: ", err);
-                    if(document.body.contains(printElement)) document.body.removeChild(printElement);
-                    mainApp.style.display = 'block';
-                    overlay.classList.remove('active');
-                    alert("Fehler beim Erstellen der PDF.");
-                });
-            }, 2500); 
+                // WICHTIG: Die Promise-Kette von html2pdf.js muss an einem Stück ausgeführt werden. 
+                // Das Unterbrechen in eine Variable "const worker" hat die interne Struktur zerstört.
+                html2pdf()
+                    .set(opt)
+                    .from(printElement)
+                    .toPdf()
+                    .get('pdf')
+                    .then(function (pdf) {
+                        const totalPages = pdf.internal.getNumberOfPages();
+                        for (let i = 1; i <= totalPages; i++) {
+                            pdf.setPage(i);
+                            pdf.setFontSize(10);
+                            pdf.setTextColor(100);
+                            pdf.text('Seite ' + i + ' von ' + totalPages, pdf.internal.pageSize.getWidth() - 20, pdf.internal.pageSize.getHeight() - 8, {align: 'right'});
+                        }
+                    })
+                    .save()
+                    .then(() => {
+                        // Alles wieder aufräumen
+                        document.body.removeChild(printElement);
+                        mainApp.style.display = 'block';
+                        overlay.classList.remove('active');
+                    })
+                    .catch(err => {
+                        console.error("PDF Error: ", err);
+                        if(document.body.contains(printElement)) document.body.removeChild(printElement);
+                        mainApp.style.display = 'block';
+                        overlay.classList.remove('active');
+                        alert("Fehler beim Erstellen der PDF.");
+                    });
+            }, 1200); 
         }
 
         window.onload = () => {
