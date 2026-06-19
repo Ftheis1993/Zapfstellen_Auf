@@ -1,4 +1,4 @@
-const CACHE_NAME = 'protocghhhfttv';
+const CACHE_NAME = 'protocghheqwewqeqwhfttv';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
