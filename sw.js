@@ -1,4 +1,4 @@
-const CACHE_NAME = 'protocolapp-cache77thzzufttv';
+const CACHE_NAME = 'protocolapp-cache77zthzzufttv';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
