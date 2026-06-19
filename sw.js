@@ -1,4 +1,4 @@
-const CACHE_NAME = 'protocolappzufttv';
+const CACHE_NAME = 'protocfttv';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
